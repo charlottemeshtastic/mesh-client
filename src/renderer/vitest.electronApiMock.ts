@@ -255,7 +255,6 @@ export function createElectronAPIMock(): ElectronAPI {
     getPlatform: vi.fn().mockReturnValue('linux'),
     showEmojiPanel: vi.fn().mockResolvedValue(undefined),
     media: {
-      ensureMicrophoneAccess: vi.fn().mockResolvedValue({ granted: true, status: 'granted' }),
       ensureCameraAccess: vi.fn().mockResolvedValue({ granted: true, status: 'granted' }),
     },
     clipboard: {

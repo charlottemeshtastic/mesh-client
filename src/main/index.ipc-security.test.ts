@@ -325,11 +325,6 @@ describe('session permission whitelist (source contract)', () => {
     expect(body).not.toMatch(/callback\s*\(\s*true\s*\)/);
   });
 
-  it('registers media:ensureMicrophoneAccess IPC handler', () => {
-    expect(INDEX_SOURCE).toContain("ipcMain.handle('media:ensureMicrophoneAccess'");
-    expect(INDEX_SOURCE).toContain('ensureMicrophoneAccess(');
-  });
-
   it('registers media:ensureCameraAccess IPC handler', () => {
     expect(INDEX_SOURCE).toContain("ipcMain.handle('media:ensureCameraAccess'");
     expect(INDEX_SOURCE).toContain('ensureCameraAccess(');
