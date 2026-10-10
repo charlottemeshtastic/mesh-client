@@ -1,6 +1,6 @@
 # Glossary
 
-Terms you will see in Mesh-Client and in these docs. Protocol names in parentheses mean the term only applies to that protocol.
+Terms you will see in Mesh Hub and in these docs. Protocol names in parentheses mean the term only applies to that protocol.
 
 ## Radios and networks
 
@@ -8,34 +8,25 @@ Terms you will see in Mesh-Client and in these docs. Protocol names in parenthes
 : A network where radios relay each other's messages, so two people can talk without a direct link or the internet.
 
 **LoRa**
-: Long Range radio modulation used by Meshtastic, MeshCore, and RNode hardware. Low bandwidth, very long reach.
+: Long Range radio modulation used by Meshtastic and MeshCore hardware. Low bandwidth, very long reach.
 
 **Meshtastic**
-: An open-source LoRa mesh firmware and protocol. Mesh-Client's **MT** tab (green).
+: An open-source LoRa mesh firmware and protocol. Mesh Hub's **MT** tab (green).
 
 **MeshCore**
-: A LoRa mesh firmware focused on companion radios, repeaters, and room servers. Mesh-Client's **MC** tab (cyan).
-
-**Reticulum (RNS)**
-: A cryptographic networking stack that can run over LoRa, TCP, I2P, and other links. Mesh-Client's **RN** tab (yellow). See [Reticulum](reticulum.md).
+: A LoRa mesh firmware focused on companion radios, repeaters, and room servers. Mesh Hub's **MC** tab (cyan).
 
 **Node**
-: Any radio or device on the mesh. In Mesh-Client the **Nodes** tab lists every node you have heard.
+: Any radio or device on the mesh. In Mesh Hub the **Nodes** tab lists every node you have heard.
 
 **Companion radio**
-: A radio that pairs with a phone or computer app (like Mesh-Client) over Bluetooth, USB, or Wi-Fi.
+: A radio that pairs with a phone or computer app (like Mesh Hub) over Bluetooth, USB, or Wi-Fi.
 
 **Repeater** (MeshCore)
 : A fixed node that relays traffic for others. You can manage it remotely from the **Repeaters** tab.
 
 **Room server** (MeshCore)
 : A node that hosts a bulletin-board style chat room. A blank password gives read-only access when the room allows it; posting needs the guest password (often `hello`) or the admin password.
-
-**RNode** (Reticulum)
-: LoRa hardware running RNode firmware so Reticulum can use it as a radio interface.
-
-**Sidecar** (Reticulum)
-: The bundled `mesh-client-reticulum` helper program that runs the Reticulum stack alongside the app. Starting the stack starts the sidecar.
 
 ## Connections
 
@@ -51,9 +42,6 @@ Terms you will see in Mesh-Client and in these docs. Protocol names in parenthes
 **MQTT**
 : An internet message broker. Meshtastic and MeshCore can bridge mesh traffic through MQTT so you can see messages from beyond radio range.
 
-**Interface** (Reticulum)
-: One way the Reticulum stack reaches other nodes, such as a TCP server, an Auto (local network) interface, I2P, or an RNode.
-
 ## Messaging
 
 **Channel**
@@ -64,18 +52,6 @@ Terms you will see in Mesh-Client and in these docs. Protocol names in parenthes
 
 **DM**
 : Direct message to one person.
-
-**LXMF** (Reticulum)
-: The Reticulum messaging format used for direct messages.
-
-**Propagation node** (Reticulum)
-: A node that stores LXMF messages for people who are offline and delivers them when they come back.
-
-**RRC** (Reticulum)
-: Reticulum Relay Chat, hub-based group chat on the **RRC** tab.
-
-**Nomad Network** (Reticulum)
-: Pages and files hosted on Reticulum nodes, browsable from the **Nomad** tab.
 
 **ACK**
 : Acknowledgement that a message reached its destination.
@@ -115,4 +91,7 @@ Terms you will see in Mesh-Client and in these docs. Protocol names in parenthes
 : The **Incident** tab, which tracks emergency reports through acknowledge, confirm, and resolve.
 
 **TAK / CoT**
-: Team Awareness Kit and its Cursor on Target message format. Mesh-Client can exchange positions and markers with TAK clients.
+: Team Awareness Kit and its Cursor on Target message format. Mesh Hub can exchange positions and markers with TAK clients.
+
+**Bluetooth helper**
+: The small bundled `mesh-hub-ble` program that talks to Bluetooth radios for Mesh Hub. It starts automatically when you connect over Bluetooth.

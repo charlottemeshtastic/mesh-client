@@ -4,22 +4,19 @@
 
 Surveyed against `c63bccf3` (Electron 44.1.1), September 23, 2026.
 
-| Event                                    | Existing sound                                             | Owner                                        |
-| ---------------------------------------- | ---------------------------------------------------------- | -------------------------------------------- |
-| Channel message                          | 880 Hz, 150 ms pulse                                       | `chatNotifications.ts`                       |
-| DM                                       | 587/784 Hz double pulse, 135 ms overall                    | Same                                         |
-| Reply or mention                         | Same sound as DM                                           | Same                                         |
-| MECP ROUTINE                             | Repeated rising triple pulse                               | Same, selected by `mecpAlert.ts`             |
-| MECP SAFETY                              | Short–long (dit–dah) pairs × 6, piercing square (~4.4s)    | Same                                         |
-| MECP URGENT                              | 853+960 Hz attention tone, 5 seconds                       | Same                                         |
-| MECP MAYDAY                              | Six sweeping siren cycles, ~5.0 seconds (matches URGENT)   | Same                                         |
-| Radio link lost (`connectionLost`)       | 784→523 Hz falling double pulse                            | Same, gated by `operationalAlerts.ts`        |
-| Node battery low (`batteryLow`)          | 440 Hz flat double pulse                                   | Same, gated by `operationalAlerts.ts`        |
-| RRC room messages, mentions and whispers | Reuses channel/reply/DM categories                         | `rrcInactiveNotifications.ts`                |
-| Reticulum game activity                  | Reuses DM                                                  | `reticulumGamesNotifications.ts`             |
-| Watched node online/offline              | OS default notification sound                              | `useNodeStatusNotifier.ts`                   |
-| Update-check results                     | OS default notification sound                              | Main `notify:message` IPC                    |
-| Reticulum voice call progress            | Dial, DTMF, modem handshake/carrier, ringback, busy/reject | Separate `reticulumVoiceCallTones.ts` engine |
+| Event                              | Existing sound                                           | Owner                                 |
+| ---------------------------------- | -------------------------------------------------------- | ------------------------------------- |
+| Channel message                    | 880 Hz, 150 ms pulse                                     | `chatNotifications.ts`                |
+| DM                                 | 587/784 Hz double pulse, 135 ms overall                  | Same                                  |
+| Reply or mention                   | Same sound as DM                                         | Same                                  |
+| MECP ROUTINE                       | Repeated rising triple pulse                             | Same, selected by `mecpAlert.ts`      |
+| MECP SAFETY                        | Short–long (dit–dah) pairs × 6, piercing square (~4.4s)  | Same                                  |
+| MECP URGENT                        | 853+960 Hz attention tone, 5 seconds                     | Same                                  |
+| MECP MAYDAY                        | Six sweeping siren cycles, ~5.0 seconds (matches URGENT) | Same                                  |
+| Radio link lost (`connectionLost`) | 784→523 Hz falling double pulse                          | Same, gated by `operationalAlerts.ts` |
+| Node battery low (`batteryLow`)    | 440 Hz flat double pulse                                 | Same, gated by `operationalAlerts.ts` |
+| Watched node online/offline        | OS default notification sound                            | `useNodeStatusNotifier.ts`            |
+| Update-check results               | OS default notification sound                            | Main `notify:message` IPC             |
 
 ### Default MECP tone shapes
 
@@ -32,7 +29,7 @@ Built-in profiles in `SOUND_PROFILES` (`chatNotifications.ts`); users can replac
 
 ChatPanel handles foreground chat views; App handles inactive panels/protocols and hidden windows. The existing gates determine whether a sound is appropriate.
 
-**Desktop notifications:** when a chat sound fires while the app window is inactive (hidden, minimized or unfocused), App also raises an OS notification. This covers all four chat surfaces: Meshtastic, MeshCore, Reticulum LXMF Chat and RRC. The notification uses the same gates as the sound, so global mute and per-channel, per-DM and per-room mutes suppress both. RRC channel lines in the watched room stay silent. The notification shows the sender and a preview; control characters are stripped and the text is truncated (`desktopNotification.ts`, `chatDesktopNotifications.ts`). Each conversation gets one tag (`<protocol>:<view>`), so a newer message replaces the older notification instead of stacking. Clicking it focuses the window (`app:focusWindow`), switches protocol if needed, and opens the Chat DM or channel, or the RRC room. Chat and MECP desktop notifications are silent so they do not duplicate Web Audio playback. The audio context is reused and resumed when suspended. MECP drills stay silent; MAYDAY/URGENT bypass notification mutes, while ROUTINE/SAFETY respect them.
+**Desktop notifications:** when a chat sound fires while the app window is inactive (hidden, minimized or unfocused), App also raises an OS notification. This covers both chat surfaces: Meshtastic and MeshCore. The notification uses the same gates as the sound, so global mute and per-channel, per-DM and per-room mutes suppress both. RRC channel lines in the watched room stay silent. The notification shows the sender and a preview; control characters are stripped and the text is truncated (`desktopNotification.ts`, `chatDesktopNotifications.ts`). Each conversation gets one tag (`<protocol>:<view>`), so a newer message replaces the older notification instead of stacking. Clicking it focuses the window (`app:focusWindow`), switches protocol if needed, and opens the Chat DM or channel, or the RRC room. Chat and MECP desktop notifications are silent so they do not duplicate Web Audio playback. The audio context is reused and resumed when suspended. MECP drills stay silent; MAYDAY/URGENT bypass notification mutes, while ROUTINE/SAFETY respect them.
 
 There is no single documented Electron API for opening each OS's alert-tone settings picker. The platform APIs differ:
 
@@ -41,7 +38,7 @@ There is no single documented Electron API for opening each OS's alert-tone sett
 | macOS     | Electron Notification accepts a named installed/custom sound                                                | Tied to an OS notification; notification delivery requires signing. Installed alert files may be AIFF.                  |
 | Windows   | Electron exposes toast XML; Windows toast audio supports system event aliases and constrained custom sounds | Toast behavior and supported paths depend on Windows packaging/notification rules. It is not a foreground sound picker. |
 | Linux     | Desktop Notifications defines sound-name/file hints when the notification server supports sound             | Desktop/server support varies; Electron does not expose a general sound-hints selector.                                 |
-| All three | Web Audio playback and Electron's native file chooser                                                       | Mesh Client must provide the tone-selection UI and manage its chosen files.                                             |
+| All three | Web Audio playback and Electron's native file chooser                                                       | Mesh Hub must provide the tone-selection UI and manage its chosen files.                                                |
 
 Sources: [Electron Notification](https://www.electronjs.org/docs/latest/api/notification), [Electron Dialog](https://www.electronjs.org/docs/latest/api/dialog), [Windows toast audio](https://learn.microsoft.com/en-us/uwp/schemas/tiles/toastschema/element-audio), [Desktop Notifications](https://specifications.freedesktop.org/notification/latest-single/).
 
@@ -49,7 +46,7 @@ Keep a single Web Audio owner for chat/MECP. Adding a second native sound path w
 
 ## Controls
 
-**App → Notifications → Notification tones** provides an independent selection for channel messages, DMs, replies/mentions, each of the four MECP severities, and the operational alerts (radio link lost, node battery low). DM settings also apply to game notifications and RRC whispers; RRC mentions use the reply setting.
+**App → Notifications → Notification tones** provides an independent selection for channel messages, DMs, replies/mentions, each of the four MECP severities, and the operational alerts (radio link lost, node battery low).
 
 Each row offers the original sound, four additional presets, **Choose file**, **Preview/Stop**, volume, and **Reset**. Existing users retain their original sounds until they choose another. Preview is an explicit playback action even when notifications are muted. MAYDAY and URGENT retain mute bypass and a 10% minimum volume; this cannot override a muted output device or guarantee that a custom recording is audible.
 

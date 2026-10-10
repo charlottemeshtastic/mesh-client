@@ -1,6 +1,6 @@
 # UI style guide
 
-Rules for the Mesh Client UI (desktop today, iOS and Android later), written for contributors and for AI coding agents. It combines the Colorado Mesh style guide by ashortgrayble (color scales, type system, radius, elevation) with the v6 redesign from [issue #1062](https://github.com/charlottemeshtastic/mesh-client/issues/1062): Option B navigation (rail, section tabs, status bar) plus Option C's launcher.
+Rules for the Mesh Hub UI (desktop today, iOS and Android later), written for contributors and for AI coding agents. It combines the Colorado Mesh style guide by ashortgrayble (color scales, type system, radius, elevation) with the v6 redesign from [issue #1062](https://github.com/charlottemeshtastic/mesh-client/issues/1062): Option B navigation (rail, section tabs, status bar) plus Option C's launcher.
 
 The source of truth for exact values, contrast ratios and rationale is the [Colorado Mesh style guide in Figma](https://www.figma.com/design/ZPZsHgPZX8dQTUYzP4uDjZ/Colorado-Mesh?node-id=17-4). The tokens in `src/renderer/styles.css` carry its values.
 
@@ -46,44 +46,43 @@ Everything uses Tailwind utility classes. Theme tokens (below) are CSS variables
 
 ### Neutrals (ink)
 
-Neutrals come from the Midnight Serenity palette picked during review: Ink Black `#11151c` (950), Deep Space Blue `#212d40` (800) and Charcoal Blue `#364156` (700). The other steps are derived. 900 sits halfway between 950 and 800, and 50 to 600 keep Tailwind slate's lightness per step with the palette's hue, so text contrast stays where it was. The scale is `--color-ink-*` in `styles.css`, and a [theme](#themes) surface swaps all eleven steps at runtime.
+Neutrals come from the Mesh Hub palette: Off-Black `#1b1b1b` (950), Dark Charcoal `#292929` (900), Light Charcoal / Grey `#808080` (500) and Pure White `#ffffff` (50). The other steps are neutral greys between them. The scale is `--color-ink-*` in `styles.css`, and a [theme](#themes) surface swaps all eleven steps at runtime.
 
-Use `ink-*` utilities or the tokens below; `slate-*`, `zinc-*` and `gray-*` are rejected by source policy. Zinc was tried first and read as brown next to the Reticulum yellow.
+Use `ink-*` utilities or the tokens below; `slate-*`, `zinc-*` and `gray-*` are rejected by source policy.
 
 | Token / class                                 | Default (ink)         | Use                                                   |
 | --------------------------------------------- | --------------------- | ----------------------------------------------------- |
-| `bg-app-bg`                                   | `#11151c` (950)       | App background, section header, main viewport         |
-| `bg-deep-black`                               | `#19212d` (900)       | Rail, status bar, cards, panels, menus, launcher      |
-| `bg-sidebar-active-bg`                        | `#212d40` (800)       | Active nav item, selected row, hover fill             |
-| `border-ink-800`                              | `#212d40`             | Hairlines between shell parts and inside cards        |
-| `bg-secondary-dark` / `border-secondary-dark` | `#364156` (700)       | Secondary control fill, field borders, stronger lines |
-| `text-muted`                                  | `#93a0b7` (400)       | Secondary text, placeholders, inactive icons          |
-| `text-ink-300` / `text-ink-200`               | `#cdd4e2` / `#e3e8f0` | Body text / primary text                              |
+| `bg-app-bg`                                   | `#1b1b1b` (950)       | App background, section header, main viewport         |
+| `bg-deep-black`                               | `#292929` (900)       | Rail, status bar, cards, panels, menus, launcher      |
+| `bg-sidebar-active-bg`                        | `#333333` (800)       | Active nav item, selected row, hover fill             |
+| `border-ink-800`                              | `#333333`             | Hairlines between shell parts and inside cards        |
+| `bg-secondary-dark` / `border-secondary-dark` | `#424242` (700)       | Secondary control fill, field borders, stronger lines |
+| `text-muted`                                  | `#a3a3a3` (400)       | Secondary text, placeholders, inactive icons          |
+| `text-ink-300` / `text-ink-200`               | `#c7c7c7` / `#e0e0e0` | Body text / primary text                              |
 
 `ink-500` and darker are never text on dark surfaces (under 4.5:1).
 
 ### Protocol scales
 
-Each protocol has a five-step scale, tuned in OKLCH and contrast-checked per step on light and dark backgrounds. Use the token classes (`text-meshtastic-500`, `bg-meshcore-700`, `border-reticulum-300`, and so on). The 500 base step marks the protocol (rail switcher, its name, identity links); the 700 step is the fill under white text (badges).
+Each protocol has a five-step scale, tuned in OKLCH and contrast-checked per step on light and dark backgrounds. Use the token classes (`text-meshtastic-500`, `bg-meshcore-700`, `border-meshcore-300`, and so on). The 500 base step marks the protocol (rail switcher, its name, identity links); the 700 step is the fill under white text (badges).
 
 | Protocol   | Token prefix  | 100       | 300       | 500 (base) | 700       | 900       |
 | ---------- | ------------- | --------- | --------- | ---------- | --------- | --------- |
 | Meshtastic | `meshtastic-` | `#d1fae5` | `#a7f3d0` | `#67e8b4`  | `#047857` | `#064e3b` |
 | MeshCore   | `meshcore-`   | `#cffafe` | `#a5f3fc` | `#00d3f2`  | `#0e7490` | `#164e63` |
-| Reticulum  | `reticulum-`  | `#fef9c3` | `#fef08a` | `#facc15`  | `#a16207` | `#713f12` |
 
-Reticulum is yellow, not amber, so it never reads as a warning. Protocol classes live in `lib/protocolTheme.ts` and are fixed: they keep their identity under every theme.
+Protocol classes live in `lib/protocolTheme.ts` and are fixed: they keep their identity under every theme.
 
 ### Accent (theme)
 
-The accent tokens follow the selected theme preset; the default preset is Meshtastic.
+The accent tokens follow the selected theme preset; the default preset is Signature orange.
 
-| Token / class                          | Default                  | Use                                                                        |
-| -------------------------------------- | ------------------------ | -------------------------------------------------------------------------- |
-| `text-bright-green` / `bg-brand-green` | `#67e8b4` meshtastic-500 | Accent: active nav, selection, focus ring, links, primary buttons          |
-| `text-app-bg` on `bg-brand-green`      |                          | Primary button label (dark on accent, about 13:1)                          |
-| `bg-readable-green`                    | `#047857` meshtastic-700 | Fills under white text; must keep 4.5:1 with white (`themeColors.test.ts`) |
-| `--color-chat-outgoing-bg` / `-border` | 700 at 22% / 500 at 25%  | Own chat bubbles                                                           |
+| Token / class                          | Default                 | Use                                                                        |
+| -------------------------------------- | ----------------------- | -------------------------------------------------------------------------- |
+| `text-bright-green` / `bg-brand-green` | `#ffa31a` Signature     | Accent: active nav, selection, focus ring, links, primary buttons          |
+| `text-app-bg` on `bg-brand-green`      |                         | Primary button label (dark on accent, about 13:1)                          |
+| `bg-readable-green`                    | `#b35f00` dark orange   | Fills under white text; must keep 4.5:1 with white (`themeColors.test.ts`) |
+| `--color-chat-outgoing-bg` / `-border` | 700 at 22% / 500 at 25% | Own chat bubbles                                                           |
 
 The token names say "green" for history; they hold whatever accent the theme sets.
 
@@ -109,8 +108,8 @@ Allowed exceptions: favourite stars are `yellow-400`; search highlights are yell
 
 App > Appearance > Colors has two one-click choices (`lib/themePresets.ts`, `components/ThemePicker.tsx`). Any surface pairs with any accent, and single tokens can still be edited afterwards.
 
-- **Surfaces** replace the whole neutral scale (every `ink-*` class, through `--color-ink-*` on `:root`) and the neutral tokens: Midnight (default), Slate, Zinc, Graphite, Deep sea, Dusk, Evergreen and High contrast. Deep sea, Dusk and Evergreen keep Midnight's lightness and chroma per step with another hue, so they stay tinted neutrals rather than colored backgrounds. High contrast brings body text near white and lifts field borders to 3:1 against panels (WCAG 1.4.11).
-- **Accents** set the accent and the sent-message bubbles: Meshtastic (default), MeshCore, Reticulum, Sky and Classic green (the pre-v6 green). Slate with Classic green is the pre-v6 look.
+- **Surfaces** replace the whole neutral scale (every `ink-*` class, through `--color-ink-*` on `:root`) and the neutral tokens: Charcoal (default), Midnight, Slate, Zinc, Graphite, Deep sea, Dusk, Evergreen and High contrast. Deep sea, Dusk and Evergreen keep Midnight's lightness and chroma per step with another hue, so they stay tinted neutrals rather than colored backgrounds. High contrast brings body text near white and lifts field borders to 3:1 against panels (WCAG 1.4.11).
+- **Accents** set the accent and the sent-message bubbles: Signature orange (default), Meshtastic, MeshCore, Sky and Classic green (the pre-v6 green). Slate with Classic green is the pre-v6 look.
 
 `themePresets.test.ts` checks every surface's text pairs and every surface and accent pair against the guards in `themeColors.ts`, so no combination is ever reset. A light theme needs a sweep of hard-coded dark text first.
 
@@ -193,7 +192,7 @@ The v6 shell (`src/renderer/components/shell/`):
 
 Phones and narrow windows (under 768px, `SHELL_COMPACT_QUERY`): the rail becomes a bottom bar with Chat, Network, Map, Incident and More; More opens the launcher as a bottom sheet. Touch targets grow with the `pointer-coarse:` variant (inputs 40px).
 
-App > Protocols disables protocols the user does not run (`hiddenProtocols` in `mesh-client:appSettings`, all enabled by default; helpers in `lib/enabledProtocols.ts`). A disabled protocol leaves the switcher, is disconnected, and stays stopped across sleep and wake. It is skipped by RF auto-connect, Reticulum stack autostart, MQTT auto-launch, inactive-protocol toasts, notification clicks and Reticulum deep links. With one protocol enabled the switcher is not rendered in the rail or the More sheet.
+App > Protocols disables protocols the user does not run (`hiddenProtocols` in `mesh-client:appSettings`, all enabled by default; helpers in `lib/enabledProtocols.ts`). A disabled protocol leaves the switcher, is disconnected, and stays stopped across sleep and wake. It is skipped by RF auto-connect, MQTT auto-launch, inactive-protocol toasts, notification clicks and deep links. With one protocol enabled the switcher is not rendered in the rail or the More sheet.
 
 Where things go:
 
@@ -201,28 +200,27 @@ Where things go:
 - App-wide actions go in the section header; panel actions in the panel's toolbar.
 - Panels scroll inside the main viewport. Wide tables scroll horizontally inside their own container.
 - Detail panes: on wide windows node and peer details open inline next to the list or the map (`DetailPaneHost`), and the map shrinks; on narrow windows they open as a modal. Actions lead the pane.
-- Conversations (Chat, Rooms, RRC) use `chat/ConversationLayout`: list column, conversation, optional side panel (narrow or wide), collapsing to one pane at a time on phones.
+- Conversations (Chat, Rooms) use `chat/ConversationLayout`: list column, conversation, optional side panel (narrow or wide), collapsing to one pane at a time on phones.
 
 Small windows: minimum 900x600 on desktop; test at 1024x768 and 390px. The rail compacts below 720px of height and scrolls; the section tablist scrolls horizontally.
 
 ## Navigation
 
-| Section       | Panels                                                                                     |
-| ------------- | ------------------------------------------------------------------------------------------ |
-| Chat          | Chat, Rooms, RRC, Games                                                                    |
-| Network       | Contacts / Nodes / Peers, Repeaters, Graph, Topology, Remote, TAK                          |
-| Map           | Map                                                                                        |
-| Nomad Network | Nomad Network (Reticulum only; its own rail entry)                                         |
-| Monitor       | Diagnostics, Stats, Sniffer, RF                                                            |
-| Device        | Connection, Radio (Network on Reticulum), Modules (Meshtastic), Telemetry, Admin, Security |
-| Incident      | Incident                                                                                   |
-| App           | App                                                                                        |
+| Section  | Panels                                                              |
+| -------- | ------------------------------------------------------------------- |
+| Chat     | Chat, Rooms                                                         |
+| Network  | Contacts / Nodes / Peers, Repeaters, Graph, Topology, Remote, TAK   |
+| Map      | Map                                                                 |
+| Monitor  | Diagnostics, Stats, Sniffer, RF                                     |
+| Device   | Connection, Radio, Modules (Meshtastic), Telemetry, Admin, Security |
+| Incident | Incident                                                            |
+| App      | App                                                                 |
 
 - Panel labels do not change when they move into a section. Every panel is reachable from the rail and the launcher.
 - Clicking a section reopens the panel last shown in it for the current protocol.
 - Gate panels with `ProtocolCapabilities`, never `protocol === '...'`. Sections with no visible panel are hidden.
 - Adding a panel: slot in `TAB_SLOT_IDS`, requirement in `TAB_CAPABILITY_REQUIREMENTS`, section in `SECTION_SLOT_ORDER` (`navSections.ts`).
-- Badges: unread `bg-red-600`, pending rncp offers `bg-orange-800`, both with white text (`lib/navBadges.ts`); counts cap at `99+`; the accessible name carries the count.
+- Badges: unread `bg-red-600` with white text (`lib/navBadges.ts`); counts cap at `99+`; the accessible name carries the count.
 
 ## Keyboard
 
@@ -280,7 +278,7 @@ Menus render in a portal above modals (`Z_POPOVER_MENU`), close on Esc or outsid
 ## Chat
 
 - Bubbles: incoming `--color-chat-incoming-*` (ink-800 at 38%), own messages `--color-chat-outgoing-*` (accent 700 at 22% with a 300 border at 25%), max width 94% of the row on phones and 80% wider, with no rem cap so wide windows keep long messages on one line.
-- Sender initials (`lib/senderInitials.ts`) or the Reticulum face in a gutter on the first message of a run; the sender line carries name, time and hop or RF metadata.
+- Sender initials (`lib/senderInitials.ts`) in a gutter on the first message of a run; the sender line carries name, time and hop or RF metadata.
 - The composer is one field with the send button inside the row; the hint about Enter and Shift+Enter hides on touch.
 - The channel and DM switchers are searchable and built for thousands of entries.
 - Message action colors (bar background, button hover, "Always show message actions") are themeable in App > Appearance > Colors.
@@ -295,7 +293,7 @@ Menus render in a portal above modals (`Z_POPOVER_MENU`), close on Esc or outsid
 
 - Sentence case for labels, buttons and headings. No uppercase letter-spaced micro labels.
 - No em or en dashes; use a comma, period or hyphen. No emoji. At most one middle dot per line.
-- Name things the way the rest of the app does (Contacts on MeshCore, Nodes on Meshtastic, Peers on Reticulum).
+- Name things the way the rest of the app does (Contacts on MeshCore, Nodes on Meshtastic).
 - Every string goes through `t()` with an English key in `src/renderer/locales/en/translation.json`; see [`docs/localization.md#maintainer-workflow`](localization.md#maintainer-workflow).
 
 ## Accessibility
@@ -326,11 +324,11 @@ Source-policy rules in `src/architecture/sourcePolicyRules.ts` (Vitest, pre-comm
 ## Open items
 
 - From the designer's Figma: the status Light-BG and Dark-Text steps, and the exact Level 1 to 4 shadows. Protocol scales, status Main colors and type are already exact.
-- Neutrals: Midnight Serenity gives three dark steps. The light steps used for text (ink-50 to ink-600) are derived; exact values from the designer drop into `--color-ink-*`.
-- Protocol colors outside `protocolTheme.ts` (for example some Reticulum panels and data ramps) still use Tailwind's `emerald` / `cyan` / `yellow` classes; move the ones that mark a protocol to the scale tokens.
+- Neutrals: the Mesh Hub palette gives four fixed steps (950, 900, 500, 50); the steps between are plain greys. Exact values from a designer drop into `--color-ink-*`.
+- The Signature orange accent sits close to the warning orange (`status-warning` `#f97316`); warning states should keep a non-color signal (icon or text) so they never read as the accent.
+- Protocol colors outside `protocolTheme.ts` (for example some data ramps) still use Tailwind's `emerald` / `cyan` / `yellow` classes; move the ones that mark a protocol to the scale tokens.
 - Status text still uses Tailwind's `-400` steps (v4 oklch values) next to the exact Main tokens used by dots.
 - The Main success green (`#34d399`) sits close to the Meshtastic base (`#67e8b4`); status dots always come with text, so "online" is never color alone.
-- The dark end of the Reticulum scale (700 and 900) leans toward orange; worth a look so it never reads as a dark warning.
 - Field borders (`border-secondary-dark` on panels) are about 1.7:1 in every surface except High contrast, under the 3:1 WCAG 1.4.11 asks of a control boundary. Raising them changes the look, so it is a design call.
 - A night vision field mode for eyes adjusted to the dark: red color surfaces rather than a whole-window filter (a filter costs CPU and battery on every repaint), with MAYDAY, URGENT and info badges still telling apart by more than brightness.
 - A light theme.

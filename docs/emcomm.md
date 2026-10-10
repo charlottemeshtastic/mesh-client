@@ -1,6 +1,6 @@
 # EMCOMM: MECP and Incident Command
 
-Mesh-Client supports emergency communications (EMCOMM) on Meshtastic, MeshCore, and Reticulum. This guide is for operators: how emergency reports are sent and received, what the **Incident** tab shows, and which settings matter. For problems, see [Troubleshooting — MECP](troubleshooting.md#mecp-emergency-reports).
+Mesh Hub supports emergency communications (EMCOMM) on Meshtastic and MeshCore. This guide is for operators: how emergency reports are sent and received, what the **Incident** tab shows, and which settings matter. For problems, see [Troubleshooting — MECP](troubleshooting.md#mecp-emergency-reports).
 
 ## MECP reports
 
@@ -29,7 +29,7 @@ MECP/<severity>/<codes> [freetext]
 2. In Chat, open the conversation to send to, then click the red **siren** button next to Send.
 3. Choose severity and codes, add free text and optionally your position, and send.
 
-Every report goes through the **emergency outbox**. It is sent right away when the radio is up, and it keeps retrying (after 30 seconds, 1 minute, 2 minutes, then every 5 minutes) until the network acknowledges it. Acknowledgement means the radio heard the mesh repeat or confirm it (a Meshtastic ACK, a MeshCore repeater rebroadcast or DM ACK, a Reticulum delivery receipt), or another station acknowledged or relayed your report. There is no age cutoff or attempt limit. While a report is waiting, Chat shows it with **Waiting for network acknowledgement…** or a retry countdown. If a report is stuck, use **Stop retrying** on it (you are asked to confirm). A soft cap of 20 queued emergency reports blocks the least urgent extras, but never deletes anything and never blocks a MAYDAY.
+Every report goes through the **emergency outbox**. It is sent right away when the radio is up, and it keeps retrying (after 30 seconds, 1 minute, 2 minutes, then every 5 minutes) until the network acknowledges it. Acknowledgement means the radio heard the mesh repeat or confirm it (a Meshtastic ACK, a MeshCore repeater rebroadcast or DM ACK), or another station acknowledged or relayed your report. There is no age cutoff or attempt limit. While a report is waiting, Chat shows it with **Waiting for network acknowledgement…** or a retry countdown. If a report is stuck, use **Stop retrying** on it (you are asked to confirm). A soft cap of 20 queued emergency reports blocks the least urgent extras, but never deletes anything and never blocks a MAYDAY.
 
 ## Incident tab
 
@@ -37,7 +37,7 @@ The **Incident** tab is always visible on all three protocols, at the bottom of 
 
 Each row shows severity, sender, MECP codes, free text, ACK count, which protocols heard the report, and whether a distress **beacon** is active. The same report heard on several protocols (for example bridged from Meshtastic to MeshCore) appears once.
 
-Coordinates come from the report itself or the sender's last known position, and appear on the Map under **Layers → Emergency incidents** (Meshtastic, MeshCore, and Reticulum maps).
+Coordinates come from the report itself or the sender's last known position, and appear on the Map under **Layers → Emergency incidents** (Meshtastic and MeshCore).
 
 ### Acknowledge, confirm, resolve
 
@@ -68,7 +68,7 @@ Anyone on the mesh can send a MECP report, so mesh-client limits how much noise 
 
 - **Repeat silencing:** after 3 alerts from the same sender within 10 minutes, further reports from that sender stop sounding. They still appear in the Incident tab (without the banner), and a one-time notice offers **Block sender**. If many different stations send reports within a minute, further tones pause briefly as well.
 - **Block alerts:** each row in the Incident tab has **Block alerts**. Choose **Block only**, or **Block and resolve** to also close that sender's open incidents locally. Reports from a blocked sender no longer alert, open incidents, or get bridged by RF rebroadcast. They are still written to the audit log (marked blocked) and still show as text in Chat. Unblock in **App → MECP → Blocked emergency senders**.
-- **Block a node completely (Meshtastic and MeshCore):** **Block** in a node's detail view drops all of that node's messages before they reach Chat, so it cannot send MECP either. Unblock in **App → Blocked nodes**. Reticulum has its own blocklist in the Reticulum network settings.
+- **Block a node completely (Meshtastic and MeshCore):** **Block** in a node's detail view drops all of that node's messages before they reach Chat, so it cannot send MECP either. Unblock in **App → Blocked nodes**.
 
 Node IDs can be spoofed, especially on Meshtastic, so blocking stops casual abuse but not a determined attacker. Only block a sender you are sure is abusing MECP.
 
@@ -90,7 +90,7 @@ Every inbound MECP report is appended to `mecp-received.log` in the app data fol
 
 - **Silence:** a watched node has not been heard for the configured minutes, with an escalation at twice that time. Nodes never heard are not "silent".
 - **Battery low:** a watched node's reported battery drops below the threshold (default 10%). Fires once, then re-arms after it recovers 5 points.
-- **Link down:** your Meshtastic or MeshCore radio link drops unexpectedly. Never fires on a manual disconnect or while reconnecting. Reticulum is not included (it runs as a separate stack, not an RF link).
+- **Link down:** your Meshtastic or MeshCore radio link drops unexpectedly. Never fires on a manual disconnect or while reconnecting.
 - **Standing alert and repeat for unseen MAYDAY/URGENT:** in App → MECP; see [Unseen emergency alert](#unseen-emergency-alert).
 
 ## Exports

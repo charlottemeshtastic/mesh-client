@@ -120,7 +120,7 @@ The client deduplicates overlapping RF and MQTT hears within **5 minutes** (cros
 
 ## MeshCore: Room server login, posts, and Windows 10
 
-**Minimum Windows**: Mesh-Client (Electron 44) supports **Windows 10 version 1809+** and Windows 11. Windows 10 22H2 is supported; issues reported only on Win10 are usually MeshCore protocol or app regressions, not an unsupported OS. See [System requirements](troubleshooting.md#system-requirements) for the full platform table (including **macOS 13 Ventura+**).
+**Minimum Windows**: Mesh Hub (Electron 44) supports **Windows 10 version 1809+** and Windows 11. Windows 10 22H2 is supported; issues reported only on Win10 are usually MeshCore protocol or app regressions, not an unsupported OS. See [System requirements](troubleshooting.md#system-requirements) for the full platform table (including **macOS 13 Ventura+**).
 
 **Rooms vs Chat**: Official MeshCore room clients use the **Rooms** tab BBS login path. Room-server posts appear there (`SignedPlain` / channel `-2`), **not** in Chat channel pills. Admin traffic sent as normal **channel text** shows in **Chat** only.
 
@@ -188,7 +188,7 @@ The client deduplicates overlapping RF and MQTT hears within **5 minutes** (cros
 
 **Windows packaged updater: `Cannot download … Mesh-client-Setup-….exe status:404` (crash dialog)**:
 
-- `latest.yml` asks for hyphenated Setup names. GitHub stored dotted names when CI uploaded spaced NSIS filenames (`Mesh-client Setup {version}.exe` → `Mesh-client.Setup.{version}.exe`). Download the installer from [GitHub Releases](https://github.com/charlottemeshtastic/mesh-client/releases) manually (dotted or hyphenated name). Repair steps for a published release: [release-process.md](release-process.md#repair-windows-updater-assets-on-an-already-published-release).
+- `latest.yml` asks for hyphenated Setup names. GitHub stored dotted names when CI uploaded spaced NSIS filenames (`Mesh Hub Setup {version}.exe` → `Mesh-client.Setup.{version}.exe`). Download the installer from [GitHub Releases](https://github.com/charlottemeshtastic/mesh-client/releases) manually (dotted or hyphenated name). Repair steps for a published release: [release-process.md](release-process.md#repair-windows-updater-assets-on-an-already-published-release).
 
 **Retest checklist (after upgrading from a known-good build)**:
 
@@ -207,4 +207,4 @@ The client deduplicates overlapping RF and MQTT hears within **5 minutes** (cros
 
 **Multi-hop route priming / no route**: When outbound path bytes are missing but the UI shows multi-hop, ping/trace first waits passively for PathUpdated (129) and contact refresh (**15s + 5s × hops**, capped at **45s**). For **2+ hops**, if that still yields no usable hash-segment path, mesh-client may run up to **two** flood-advert priming rounds before `SendTracePath` (listener registered **before** each advert). **1-hop** targets may use a synthesized `[relayPrefix, destPrefix]` path when a direct 0-hop repeater is known. If priming and synthesis still fail, ping may fail fast with **No route from radio yet** instead of waiting the full trace timeout. One-way contacts may still time out with no TraceData after priming.
 
-**Fix**: When possible, exchange contact adds so the remote node lists you as a contact. If you cannot add them (or they never add you), treat the timeout as expected, not a Mesh-Client defect when the radio never returns a result. For multi-hop repeaters, wait for contact/path updates or run **Ping trace** once before CLI (Repeaters panel auto-pings on first multi-hop CLI when no trace exists this session).
+**Fix**: When possible, exchange contact adds so the remote node lists you as a contact. If you cannot add them (or they never add you), treat the timeout as expected, not a Mesh Hub defect when the radio never returns a result. For multi-hop repeaters, wait for contact/path updates or run **Ping trace** once before CLI (Repeaters panel auto-pings on first multi-hop CLI when no trace exists this session).

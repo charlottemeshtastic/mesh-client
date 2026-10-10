@@ -1,6 +1,6 @@
 # Development Environment Setup
 
-This guide covers local development setup for Mesh Client (Meshtastic, MeshCore, and Reticulum), including cloning, prerequisites, and test harness tooling. For runtime errors, connection issues, and packaged-app problems, see [troubleshooting.md](troubleshooting.md).
+This guide covers local development setup for Mesh Hub (Meshtastic and MeshCore), including cloning, prerequisites, and test harness tooling. For runtime errors, connection issues, and packaged-app problems, see [troubleshooting.md](troubleshooting.md).
 
 ## Shared Requirements and Tooling
 
@@ -34,7 +34,7 @@ pnpm run dev
 
 **Required** checks (must pass): Git, Node.js, pnpm, `node_modules`, and platform-native build tools (Xcode CLT on macOS, `g++`/`make` on Linux, MSVC `cl` on Windows).
 
-**Optional** checks (warnings only): Python/pip, Rust, actionlint, yamllint, a Docker-compatible container engine (Podman preferred), act, and Linux `dialout` group membership. For local CI you can use **container mode** (`pnpm run act:ci` — act + Podman/Docker) or **host mode** (`pnpm run act:ci:native` — no container engine). Fix optional items when you need docs builds, pre-commit hooks, Reticulum sidecar work, local CI parity, or USB serial on Linux.
+**Optional** checks (warnings only): Python/pip, Rust, actionlint, yamllint, a Docker-compatible container engine (Podman preferred), act, and Linux `dialout` group membership. For local CI you can use **container mode** (`pnpm run act:ci` — act + Podman/Docker) or **host mode** (`pnpm run act:ci:native` — no container engine). Fix optional items when you need docs builds, pre-commit hooks, Bluetooth helper work, local CI parity, or USB serial on Linux.
 
 Use the printed `→` hints and `setup:*` scripts (`setup:build-deps`, `setup:actionlint`, `setup:dialout`) to fix failures. See [Helper scripts (auto-install where possible)](#8-helper-scripts-auto-install-where-possible) below.
 
@@ -81,106 +81,6 @@ pnpm install
 - Dev mode (hot reload): `pnpm run dev`
 - Production-like local start: `pnpm start`
 
-### Reticulum sidecar (optional)
-
-Reticulum/LXMF runs in a separate Rust binary (`mesh-client-reticulum`) spawned by the Electron main process. The GPL-3.0-or-later TypeScript layers talk to it over localhost HTTP/WS only. You only need this when working on the **Reticulum** protocol tab.
-
-#### Installing Rust
-
-**Recommended: [rustup](https://rustup.rs/)** — matches [CI](../.github/workflows/reticulum-sidecar.yaml) and `pnpm run update`:
-
-```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source "$HOME/.cargo/env" # or open a new terminal
-rustc --version
-cargo --version
-```
-
-**macOS Homebrew alternative:** `brew install rust` works for local `cargo build`, but CI uses rustup. **Do not install both** rustup and Homebrew `rust` on the same machine — they can fight over `rustc`/`cargo` on your `PATH`. Pick one:
-
-| Approach               | Install                         | Update                                          |
-| ---------------------- | ------------------------------- | ----------------------------------------------- |
-| **rustup (preferred)** | [rustup.rs](https://rustup.rs/) | `rustup update` (also run by `pnpm run update`) |
-| **Homebrew**           | `brew install rust`             | `brew upgrade rust`                             |
-
-If you use Homebrew only, `pnpm run update` will try `brew upgrade rust` when rustup is absent. For cross-target builds (WoA, Linux glibc) and toolchain pins, prefer rustup.
-
-Linux and Windows: use rustup; on Windows you may also need [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) with the C++ workload (same as native Node modules).
-
-[`reticulum-sidecar/rust-toolchain.toml`](../reticulum-sidecar/rust-toolchain.toml) pins **`stable`** and installs `clippy`, `rustfmt`, and `llvm-tools-preview` on the first `cargo` command run inside `reticulum-sidecar/` (rustup auto-install). When `cargo` is on your `PATH` **and** sidecar-related paths are staged, pre-commit runs `pnpm run check:reticulum-sidecar` (full-feature fmt + Clippy + test with `rns-stack,rns-ble,rns-rnode-tcp` — no coverage).
-
-#### Build the sidecar
-
-From the repo root:
-
-```bash
-pnpm run reticulum:sidecar:build
-```
-
-This writes `reticulum-sidecar/target/debug/mesh-client-reticulum` (macOS/Linux) or `.exe` on Windows.
-
-**First-time / recover the stack workspace:** from the mesh-client repo root, run `./scripts/clone-ratspeak-stack.sh`. That script clones (or updates) the repo-local `.rsstack/` workspace checkouts `rsReticulum`, `rsLXMF`, `rsNomad`, `rsLXST`, and `lrgp-rs`, floats each to **`origin/main`** by default, and applies mesh-client overlays (fails if a patch will not apply). For bisect only, set `RS_RETICULUM_REF` / `RS_LXMF_REF` / `RS_NOMAD_REF` / `RS_LXST_REF` / `RS_LRGP_REF` to a SHA or ref before running the clone script — CI and normal updates never pin Ratspeak SHAs.
-
-When those `.rsstack/` checkouts already exist, `pnpm run reticulum:sidecar:build` applies required overlays via `scripts/ensure-rsReticulum-patches.sh` before compiling with `rns-stack,rns-ble,rns-rnode-tcp`. See [`reticulum-sidecar/patches/README.md`](../reticulum-sidecar/patches/README.md) for overlay details.
-
-**First run in Electron dev:** **Reticulum** → **Connection** → **Start stack** will run `cargo build` automatically if that binary is missing (first compile can take a few minutes). Pre-build with the command above to avoid waiting on the first click.
-
-#### Run and verify
-
-```bash
-# Optional: run sidecar standalone (port 19437)
-pnpm run reticulum:sidecar:dev
-
-# Health check (standalone or after Start stack in the app)
-curl -s http://127.0.0.1:19437/api/v1/status
-# → {"status":"ok",...}
-```
-
-In Electron dev: select **RN** (Reticulum, yellow) at the top of the rail → **Connection** → **Start stack**. Then use **Network** for identity (generate/import) and **Connection** for interfaces (add, edit, delete). Dev builds resolve the binary from `reticulum-sidecar/target/debug/mesh-client-reticulum`.
-
-#### Keep Rust and the sidecar current
-
-`pnpm run update` updates Node dependencies and:
-
-1. Syncs Flatpak vendored Electron archives to match `package.json` (`scripts/sync-flatpak-electron.mjs`)
-2. When `cargo` is available: runs `rustup update` (or `brew upgrade rust` if you use Homebrew rust without rustup) and rebuilds the sidecar with `cargo build` in `reticulum-sidecar/`
-
-**Scope:** `pnpm update` / `pnpm-lock.yaml` changes are **repo-local** (commit the lockfile on your branch). The sidecar rebuild writes only to gitignored `reticulum-sidecar/target/`. **Rust toolchain updates are not repo-scoped** — `rustup update` refreshes the toolchain in your user profile (`~/.rustup`, `~/.cargo/bin`), shared by any Rust project on the machine. The committed [`rust-toolchain.toml`](../reticulum-sidecar/rust-toolchain.toml) selects `stable` and required components for this crate; rustup applies it when you build or lint inside `reticulum-sidecar/`.
-
-By default, `pnpm run update` keeps `reticulum-sidecar/target/` so the next Electron **Start stack** or `reticulum:sidecar:build` stays warm. After a verify-and-walk-away run (or when reclaiming disk — often ~2–3G), opt in to a full `cargo clean` after a successful rebuild:
-
-```bash
-# Preferred
-CLEAN_SIDECAR_TARGET=1 pnpm run update
-
-# Equivalent flag (pnpm forwards args after --)
-pnpm run update -- --clean-target
-
-# Ad hoc anytime (does not run update)
-pnpm run reticulum:sidecar:clean
-```
-
-Skip cleanup while iterating on sidecar Rust or Reticulum in Electron — the next build will be cold (several minutes).
-
-#### Lint and coverage (sidecar)
-
-| Command                                  | When                                                                 |
-| ---------------------------------------- | -------------------------------------------------------------------- |
-| `pnpm run check:reticulum-sidecar`       | Pre-commit full-feature fmt + Clippy + test (when `cargo` on `PATH`) |
-| `pnpm run reticulum:sidecar:clippy:full` | Before PR when editing `reticulum-sidecar/**`                        |
-| `pnpm run reticulum:sidecar:coverage`    | Optional local HTML report (`cargo install cargo-llvm-cov`)          |
-
-CI: full-feature lint in [`reticulum-sidecar.yaml`](../.github/workflows/reticulum-sidecar.yaml); line-coverage threshold in [`tests.yaml`](../.github/workflows/tests.yaml) when sidecar paths change (not pre-commit).
-
-#### Further reading
-
-- Optional full RNS stack: [`reticulum-sidecar/README.md`](../reticulum-sidecar/README.md) (`rns-stack` Cargo feature)
-- Architecture: [docs/reticulum.md](reticulum.md)
-- HTTP contract: [docs/reticulum-sidecar-ipc.md](reticulum-sidecar-ipc.md)
-- Won't start / health timeout: [troubleshooting-reticulum.md#reticulum-sidecar-wont-start-or-health-poll-times-out](troubleshooting-reticulum.md#reticulum-sidecar-wont-start-or-health-poll-times-out)
-
-Windows ARM64 release builds use a dedicated `aarch64-pc-windows-msvc` CI job (see `.github/workflows/reticulum-sidecar.yaml`).
-
 ### Common pnpm commands
 
 Use these from the repository root:
@@ -211,12 +111,12 @@ pnpm run clean
 pnpm run clean:build
 pnpm run clean:build:full
 
-# Reticulum sidecar (optional; requires Rust)
-pnpm run reticulum:sidecar:build
-pnpm run reticulum:sidecar:dev
-pnpm run check:reticulum-sidecar
-pnpm run reticulum:sidecar:clippy:full
-pnpm run reticulum:sidecar:coverage
+# Bluetooth helper (requires Rust)
+pnpm run ble:sidecar:build
+pnpm run ble:sidecar:dev
+pnpm run check:ble-sidecar
+pnpm run ble:sidecar:clippy
+pnpm run ble:sidecar:coverage
 
 # Docs
 pnpm run docs:install
@@ -226,8 +126,8 @@ pnpm run docs:serve
 
 Both `clean:build` and `clean:build:full` (cross-platform; see [`scripts/clean-build.mjs`](../scripts/clean-build.mjs)) print the full list of what will be removed and always confirm with a `Proceed? [y/N]` prompt before deleting anything (default **N**; pass `-y`/`--yes` to skip, in which case the plan is still printed). They never run when stdin is not a TTY and `-y` is absent, so they cannot hang in CI.
 
-- **`clean:build` (shallow)** — removes build dists, test output, and caches (`dist`, `dist-electron`, `release`, `coverage`, `.vitest-reports`, `test-results`, `playwright-report`, `.eslintcache`). It **keeps `node_modules/` and the Reticulum sidecar**, so `pnpm run dev` / `pnpm start` and the sidecar keep working. Use it to force fresh rebuilds, clear stale or corrupt intermediate output, or free modest disk without re-installing.
-- **`clean:build:full`** — removes everything above **plus** `node_modules`, `reticulum-sidecar/target/`, and the bundled sidecar binary (`resources/reticulum-sidecar/`), then runs `pnpm install` and `pnpm run reticulum:sidecar:build` so the environment is left in a working state. Use it to fix a corrupt/drifted `node_modules`, clear stale Rust incremental state after toolchain or overlay-patch changes, or reclaim up to ~20G+ of disk while restoring a known-good environment. The reinstall is skipped if nothing in tier 2 was actually present.
+- **`clean:build` (shallow)** — removes build dists, test output, and caches (`dist`, `dist-electron`, `release`, `coverage`, `.vitest-reports`, `test-results`, `playwright-report`, `.eslintcache`). It **keeps `node_modules/` and the Bluetooth helper**, so `pnpm run dev` / `pnpm start` and the sidecar keep working. Use it to force fresh rebuilds, clear stale or corrupt intermediate output, or free modest disk without re-installing.
+- **`clean:build:full`** — removes everything above **plus** `node_modules`, `ble-sidecar/target/`, and the bundled helper binary (`resources/ble-sidecar/`), then runs `pnpm install` and `pnpm run ble:sidecar:build` so the environment is left in a working state. Use it to fix a corrupt/drifted `node_modules`, clear stale Rust incremental state after toolchain or overlay-patch changes, or reclaim up to ~20G+ of disk while restoring a known-good environment. The reinstall is skipped if nothing in tier 2 was actually present.
 
 `clean:build` and `clean:build:full` are the cross-platform equivalents of `make clean`/deep clean; the repo's older Unix-only `clean` (`clean` above) remains for its narrower, `rm -rf`-style behaviour.
 
@@ -348,17 +248,17 @@ flatpak-node-generator pnpm flatpak/pnpm-lock.project.yaml \
 
 Offline install inside the Flatpak sandbox uses `scripts/flatpak-pnpm-install.mjs`, which retries transient `@jsr/_tmp_*` rename races (same root cause as Windows `dist:win` hoisted installs).
 
-**3b. Bundle Reticulum sidecar** (required for Reticulum tab in the Flatpak; CI does this automatically)
+**3b. Bundle the Bluetooth helper** (required for BLE in the Flatpak; CI does this automatically)
 
-The manifest copies `resources/` into the app, including `resources/reticulum-sidecar/mesh-client-reticulum`. Before `flatpak-builder`, build the sidecar and install the binary there:
+The manifest copies `resources/` into the app, including `resources/ble-sidecar/mesh-hub-ble`. Before `flatpak-builder`, build the helper and install the binary there:
 
 ```bash
-pnpm run reticulum:sidecar:build
-install -Dm755 reticulum-sidecar/target/debug/mesh-client-reticulum \
-  resources/reticulum-sidecar/mesh-client-reticulum
+pnpm run ble:sidecar:build
+install -Dm755 ble-sidecar/target/debug/mesh-hub-ble \
+  resources/ble-sidecar/mesh-hub-ble
 ```
 
-For a release-quality local Flatpak, use `cargo build --release` with `rns-stack,rns-ble,rns-rnode-tcp` (see [Reticulum sidecar](#reticulum-sidecar-optional)).
+For a release-quality local Flatpak, use `cargo build --release --features gatt-ble` in `ble-sidecar/`.
 
 **4. Build and install locally**
 
@@ -432,32 +332,30 @@ flatpak run --command=flatpak-builder-lint org.freedesktop.Sdk \
 
 #### Quality checks
 
-| Script                                | Description                                                             |
-| ------------------------------------- | ----------------------------------------------------------------------- |
-| `check:audit-ignores`                 | Warn when an ignored audit GHSA has a patch (needs network)             |
-| `check:codeql-extensions`             | Verify CodeQL extension allowlist for custom queries                    |
-| `check:console-log`                   | Fail on bare `console.log` in production paths                          |
-| `check:db-migrations`                 | Verify SQLite migrations are valid                                      |
-| `check:electron-security`             | Verify Electron security settings (CSP, sandbox, etc.)                  |
-| `check:environment`                   | Verify local dev prerequisites (run after clone)                        |
-| `check:flatpak`                       | Lint Flatpak manifest and wrapper scripts                               |
-| `check:flatpak-offline-pnpm`          | PR/release offline Flatpak pnpm store vN + lockfile coverage            |
-| `check:i18n`                          | Verify English keys, unused keys, and locale quality rules              |
-| `check:i18n:branch`                   | Run i18n quality checks on keys new/changed vs `HEAD` only              |
-| `check:insecure-temp-files`           | Predictable `os.tmpdir()` writes (CodeQL `js/insecure-temporary-file`)  |
-| `check:ipc-contract`                  | Verify IPC channel contracts between main/preload/renderer              |
-| `check:licenses`                      | Allowlist dependency licenses (`pnpm licenses list` + SPDX policy)      |
-| `check:log-injection`                 | Detect unsanitized user data in log calls                               |
-| `check:log-panel-filter`              | Verify log panel filter wiring                                          |
-| `check:log-service-sinks`             | Verify log service sink configuration                                   |
-| `check:pinned-majors`                 | Warn when a pinned override is behind a newer npm major (needs network) |
-| `check:protocol-string-gates`         | Enforce protocol capability gates over string compares                  |
-| `check:reticulum-decommissioned-hubs` | Keep TS/Rust decommissioned hub lists aligned                           |
-| `check:reticulum-interface-modes`     | Keep TS/Rust Reticulum interface-mode catalogs aligned                  |
-| `check:reticulum-sidecar`             | Full-feature `cargo fmt` + Clippy + test (skips when `cargo` missing)   |
-| `check:silent-catches`                | Detect empty or unlogged catch blocks                                   |
-| `check:url-hostname-sanitization`     | Verify URL hostname sanitization helpers                                |
-| `check:xss-patterns`                  | Detect risky DOM/HTML sink patterns                                     |
+| Script                            | Description                                                               |
+| --------------------------------- | ------------------------------------------------------------------------- |
+| `check:audit-ignores`             | Warn when an ignored audit GHSA has a patch (needs network)               |
+| `check:codeql-extensions`         | Verify CodeQL extension allowlist for custom queries                      |
+| `check:console-log`               | Fail on bare `console.log` in production paths                            |
+| `check:db-migrations`             | Verify SQLite migrations are valid                                        |
+| `check:electron-security`         | Verify Electron security settings (CSP, sandbox, etc.)                    |
+| `check:environment`               | Verify local dev prerequisites (run after clone)                          |
+| `check:flatpak`                   | Lint Flatpak manifest and wrapper scripts                                 |
+| `check:flatpak-offline-pnpm`      | PR/release offline Flatpak pnpm store vN + lockfile coverage              |
+| `check:i18n`                      | Verify English keys, unused keys, and locale quality rules                |
+| `check:i18n:branch`               | Run i18n quality checks on keys new/changed vs `HEAD` only                |
+| `check:insecure-temp-files`       | Predictable `os.tmpdir()` writes (CodeQL `js/insecure-temporary-file`)    |
+| `check:ipc-contract`              | Verify IPC channel contracts between main/preload/renderer                |
+| `check:licenses`                  | Allowlist dependency licenses (`pnpm licenses list` + SPDX policy)        |
+| `check:log-injection`             | Detect unsanitized user data in log calls                                 |
+| `check:log-panel-filter`          | Verify log panel filter wiring                                            |
+| `check:log-service-sinks`         | Verify log service sink configuration                                     |
+| `check:pinned-majors`             | Warn when a pinned override is behind a newer npm major (needs network)   |
+| `check:protocol-string-gates`     | Enforce protocol capability gates over string compares                    |
+| `check:ble-sidecar`               | Bluetooth helper `cargo fmt` + Clippy + test (skips when `cargo` missing) |
+| `check:silent-catches`            | Detect empty or unlogged catch blocks                                     |
+| `check:url-hostname-sanitization` | Verify URL hostname sanitization helpers                                  |
+| `check:xss-patterns`              | Detect risky DOM/HTML sink patterns                                       |
 
 #### Documentation
 
@@ -480,36 +378,26 @@ flatpak run --command=flatpak-builder-lint org.freedesktop.Sdk \
 | `act:pr:native`          | Run native CI + tests on the host                             |
 | `act:build:linux`        | Run `build.yaml` ubuntu leg via act + containers              |
 | `act:build:linux:native` | Run `dist:linux` on the host                                  |
-| `act:reticulum`          | Reticulum sidecar Linux jobs via act                          |
-| `act:reticulum:native`   | Reticulum sidecar stub `cargo test` / build on the host       |
 | `act:flatpak`            | Flatpak x86_64 workflow via act (slow; privileged)            |
 | `act:pull-images`        | Pre-pull Docker images for act (container mode)               |
 | `act:list`               | List container and native act targets                         |
 
 #### Setup / helpers
 
-| Script                          | Description                                                                                                                     |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `clean`                         | Remove `dist-electron`, `dist`, and `node_modules`                                                                              |
-| `clean:build`                   | Remove build dists, test output, and caches (keeps `node_modules` + sidecar); prompts `[y/N]` (default N)                       |
-| `clean:build:full`              | Also remove `node_modules` + Reticulum sidecar build output, then reinstall deps + rebuild sidecar; prompts `[y/N]` (default N) |
-| `dedupe:dist`                   | Retrying dist dedupe (`scripts/dedupe-dist.mjs`; `@jsr/_tmp_*` races)                                                           |
-| `i18n:auto-translate`           | Machine-translate missing locale keys (MyMemory default)                                                                        |
-| `i18n:prune-unused`             | Remove orphaned translation keys from locale files                                                                              |
-| `rebuild`                       | Rebuild native Node modules for Electron                                                                                        |
-| `release`                       | Maintainer release script (`scripts/release.sh`)                                                                                |
-| `reticulum:sidecar:build`       | Build debug `mesh-client-reticulum` (requires `cargo`)                                                                          |
-| `reticulum:sidecar:clippy`      | Clippy stub build (`-D warnings`)                                                                                               |
-| `reticulum:sidecar:clippy:full` | Clippy with `rns-stack,rns-ble,rns-rnode-tcp`                                                                                   |
-| `reticulum:sidecar:coverage`    | Optional HTML coverage via `cargo llvm-cov` (no CI threshold)                                                                   |
-| `reticulum:sidecar:dev`         | Run sidecar standalone on `127.0.0.1:19437`                                                                                     |
-| `reticulum:sidecar:fmt`         | `cargo fmt` in `reticulum-sidecar/`                                                                                             |
-| `reticulum:sidecar:fmt:check`   | `cargo fmt --check`                                                                                                             |
-| `reticulum:sidecar:test`        | Full-feature `cargo test` (clones the `.rsstack/` workspace if needed)                                                          |
-| `setup:actionlint`              | Install actionlint for GitHub workflow linting                                                                                  |
-| `setup:build-deps`              | Install native build dependencies                                                                                               |
-| `setup:dialout`                 | Add user to dialout group for serial port access (Linux)                                                                        |
-| `update`                        | Update pnpm deps, Rust toolchain (rustup), rebuild sidecar                                                                      |
+| Script                | Description                                                                                                                       |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `clean`               | Remove `dist-electron`, `dist`, and `node_modules`                                                                                |
+| `clean:build`         | Remove build dists, test output, and caches (keeps `node_modules` + sidecar); prompts `[y/N]` (default N)                         |
+| `clean:build:full`    | Also remove `node_modules` + Bluetooth helper build output, then reinstall deps + rebuild the helper; prompts `[y/N]` (default N) |
+| `dedupe:dist`         | Retrying dist dedupe (`scripts/dedupe-dist.mjs`; `@jsr/_tmp_*` races)                                                             |
+| `i18n:auto-translate` | Machine-translate missing locale keys (MyMemory default)                                                                          |
+| `i18n:prune-unused`   | Remove orphaned translation keys from locale files                                                                                |
+| `rebuild`             | Rebuild native Node modules for Electron                                                                                          |
+| `release`             | Maintainer release script (`scripts/release.sh`)                                                                                  |
+| `setup:actionlint`    | Install actionlint for GitHub workflow linting                                                                                    |
+| `setup:build-deps`    | Install native build dependencies                                                                                                 |
+| `setup:dialout`       | Add user to dialout group for serial port access (Linux)                                                                          |
+| `update`              | Update pnpm deps, Rust toolchain (rustup), rebuild sidecar                                                                        |
 
 #### Lifecycle (automatic)
 
@@ -563,7 +451,7 @@ Not installed by pnpm (install separately when needed):
 
 - `actionlint` (recommended for workflow linting; run `pnpm run setup:actionlint` or install system-wide)
 - `yamllint` (required for YAML linting; install via `pip install yamllint` or `brew install yamllint` on macOS)
-- **Rust / `cargo`** (optional; Reticulum sidecar — see [Reticulum sidecar](#reticulum-sidecar-optional); prefer [rustup](https://rustup.rs/)). `rust-toolchain.toml` installs clippy/rustfmt/llvm-tools-preview on first build in `reticulum-sidecar/`. Optional: `cargo install cargo-llvm-cov` for `pnpm run reticulum:sidecar:coverage`.
+- **Rust / `cargo`** (needed to build the Bluetooth helper in `ble-sidecar/`; prefer [rustup](https://rustup.rs/)). `rust-toolchain.toml` installs clippy/rustfmt/llvm-tools-preview on first build. Optional: `cargo install cargo-llvm-cov` for `pnpm run ble:sidecar:coverage`.
 - Podman or Docker (Docker-compatible engine) and `act` (optional for container CI — `act:*`; host CI uses `act:*:native` without a container engine)
 - Python 3 + `venv` + MkDocs Python deps (for docs checks/builds)
 
@@ -585,7 +473,7 @@ Pull-request CI selects merge-base-related tests across these project jobs. Merg
 
 #### Playwright Electron E2E
 
-Standalone suite under [`e2e/`](../e2e/) launches the **unpackaged** production build with Playwright’s Electron API (`playwright._electron.launch`), using [`resolveLocalElectronBin()`](../scripts/start-electron.mjs) and an isolated `--user-data-dir` (`mesh-e2e-*` under the OS temp dir). Specs cover startup, preload IPC, tabs, window lifecycle, protocol switch, settings relaunch, empty states, reload, locale, diagnostics shell, and save-dialog cancel — not BLE/serial/MQTT/hardware or Reticulum sidecar flows.
+Standalone suite under [`e2e/`](../e2e/) launches the **unpackaged** production build with Playwright’s Electron API (`playwright._electron.launch`), using [`resolveLocalElectronBin()`](../scripts/start-electron.mjs) and an isolated `--user-data-dir` (`mesh-e2e-*` under the OS temp dir). Specs cover startup, preload IPC, tabs, window lifecycle, protocol switch, settings relaunch, empty states, reload, locale, diagnostics shell, and save-dialog cancel — not BLE/serial/MQTT/hardware flows.
 
 | Command                    | Purpose                                                              |
 | -------------------------- | -------------------------------------------------------------------- |
@@ -614,9 +502,9 @@ pnpm run lint:md
 pnpm run typecheck
 pnpm run format:check
 pnpm run check:i18n
-# Reticulum sidecar (when editing reticulum-sidecar/**)
-pnpm run reticulum:sidecar:clippy:full
-pnpm run reticulum:sidecar:test
+# Bluetooth helper (when editing ble-sidecar/**)
+pnpm run ble:sidecar:clippy
+pnpm run ble:sidecar:test
 ```
 
 Other useful commands:
@@ -628,7 +516,7 @@ Other useful commands:
 - `pnpm run test:ui` / `test:logic` / `test:main` (single Vitest project)
 - `pnpm run test:coverage` (CI coverage report; used by `act:tests:native`)
 - `pnpm run test:coverage:merge` (merge sharded CI blob reports locally)
-- `pnpm run reticulum:sidecar:coverage` (optional local HTML; CI threshold in `tests.yaml`)
+- `pnpm run ble:sidecar:coverage` (optional local HTML; CI threshold in `tests.yaml`)
 - `pnpm run test:verbose` (verbose failures)
 - `pnpm run check:i18n:branch` (i18n quality on branch-diff keys only)
 - `pnpm run i18n:auto-translate` (fill missing keys)
@@ -648,7 +536,7 @@ pnpm run dist:win   # Windows -> .exe installer in release/
 
 Output goes to the `release/` directory.
 
-**macOS (`dist:mac`)** runs `electron-builder --mac --x64 --arm64 --publish never` (Intel + Apple Silicon DMG/ZIP pairs), then **`node scripts/verify-mac-packaging.mjs`**. Verify stages **`00-READ-ME-BEFORE-EXTRACTING-macOS-ZIP.txt`** for GitHub Releases, asserts both arch `.dmg` + `.zip` artifacts, deep-validates every archive (symlink-preserving ZIP extract via `ditto -xk`, DMG mount including **IMPORTANT-Read-Me.txt**), launcher/framework sizes, Squirrel/Mantle/ReactiveObjC framework symlinks, and bundled Reticulum sidecar — same checks CI `packaging-smoke` uses on downloaded artifacts. **Developer ID–signed** builds also run `codesign --verify --deep --strict` and `xcrun stapler validate` on the finished `.app`, plus `codesign --verify --strict` on the bundled Reticulum sidecar; unsigned or ad-hoc (non–Developer ID) local builds skip that gate and are still expected to pass verify. Building both arches is slower than a single-arch pack.
+**macOS (`dist:mac`)** runs `electron-builder --mac --x64 --arm64 --publish never` (Intel + Apple Silicon DMG/ZIP pairs), then **`node scripts/verify-mac-packaging.mjs`**. Verify stages **`00-READ-ME-BEFORE-EXTRACTING-macOS-ZIP.txt`** for GitHub Releases, asserts both arch `.dmg` + `.zip` artifacts, deep-validates every archive (symlink-preserving ZIP extract via `ditto -xk`, DMG mount including **IMPORTANT-Read-Me.txt**), launcher/framework sizes, Squirrel/Mantle/ReactiveObjC framework symlinks, and the bundled Bluetooth helper — same checks CI `packaging-smoke` uses on downloaded artifacts. **Developer ID–signed** builds also run `codesign --verify --deep --strict` and `xcrun stapler validate` on the finished `.app`, plus `codesign --verify --strict` on the bundled Bluetooth helper; unsigned or ad-hoc (non–Developer ID) local builds skip that gate and are still expected to pass verify. Building both arches is slower than a single-arch pack.
 
 **Optional macOS signing (release parity):** export the same env vars CI uses before `pnpm run dist:mac` or `dist:mac:publish`:
 
@@ -696,7 +584,7 @@ Hook order (authoritative source: [`.githooks/pre-commit`](../.githooks/pre-comm
 6. ESLint on **staged** JS/TS with `--cache` (skip when none staged)
 7. `pnpm run typecheck` (full tree); path-gated `typecheck:strict-shared` when `src/shared/` or `tsconfig.strict.json` staged
 8. Always-on: `check:electron-security`, `check:log-injection`, `check:log-service-sinks`, `check:codeql-extensions`, `check:insecure-temp-files`, `check:console-log`, `check:silent-catches`, `check:url-hostname-sanitization`, `check:xss-patterns`, `check:protocol-string-gates`, `check:log-panel-filter`, `check:licenses`; `check:i18n` when English locale staged else `check:i18n:branch`
-9. Path-gated: `check:flatpak`, `check:db-migrations`, `check:ipc-contract`, `check:reticulum-interface-modes`, `check:reticulum-decommissioned-hubs`, `check:reticulum-sidecar` (when `cargo` on `PATH` and sidecar paths staged)
+9. Path-gated: `check:flatpak`, `check:db-migrations`, `check:ipc-contract`, `check:ble-sidecar` (when `cargo` on `PATH` and sidecar paths staged)
 10. `pnpm audit --audit-level=high` only when dependency manifests staged; `actionlint` when `.github/workflows/*` staged; `yamllint` when any `*.yaml` / `*.yml` staged
 11. `pnpm run test:staged` (`scripts/precommit-tests.mjs`: staged-only `vitest related`; full suite when vitest config/setup mocks or dependency manifests change; skip when no source/test staged)
 
@@ -828,15 +716,11 @@ pnpm run dev
 On first BLE connection, macOS prompts for Bluetooth access. If denied accidentally:
 
 - Go to **System Settings > Privacy & Security > Bluetooth**
-- Enable access for Mesh-Client
-
-### Reticulum sidecar (optional)
-
-If you work on the Reticulum protocol tab, install Rust and build the sidecar — see [Reticulum sidecar (optional)](#reticulum-sidecar-optional) above. On macOS, **rustup is preferred** over `brew install rust` (CI parity); do not install both.
+- Enable access for Mesh Hub
 
 ### macOS release-download note (not required for source development)
 
-If a downloaded app reports "Mesh-client is damaged and can't be opened", see [macOS: File is damaged and cannot be opened](troubleshooting.md#macos-file-is-damaged-and-cannot-be-opened). If launch fails with `Library not loaded: Squirrel.framework` after extracting the macOS **ZIP with 7-Zip**, see [macOS: Squirrel.framework after ZIP extract](troubleshooting.md#macos-library-not-loaded-squirrelframework-after-zip-extract).
+If a downloaded app reports "Mesh Hub is damaged and can't be opened", see [macOS: File is damaged and cannot be opened](troubleshooting.md#macos-file-is-damaged-and-cannot-be-opened). If launch fails with `Library not loaded: Squirrel.framework` after extracting the macOS **ZIP with 7-Zip**, see [macOS: Squirrel.framework after ZIP extract](troubleshooting.md#macos-library-not-loaded-squirrelframework-after-zip-extract).
 
 ## Windows
 
@@ -933,7 +817,7 @@ Log out/in after changing groups.
 
 ### Linux Bluetooth (BLE)
 
-LoRa BLE uses the reticulum-sidecar **btleplug** GATT stack on Linux (same as macOS/Windows) — not Web Bluetooth / Noble.
+LoRa BLE uses the Bluetooth helper's **btleplug** GATT stack on Linux (same as macOS/Windows) — not Web Bluetooth / Noble.
 
 - Requires a working BlueZ stack (`systemctl status bluetooth`, `rfkill list`)
 - Flatpak builds need Bluetooth allowed (`--allow=bluetooth` + BlueZ talk-name)

@@ -4,7 +4,6 @@ File-level developer notes for each subsystem, for human contributors and coding
 
 | When working on…                                                                                          | Read                                                                                    |
 | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| Reticulum sidecar, LXMF, propagation, Remote/rnsh/rncp, Nomad, RRC, voice, games                          | [reticulum-development.md — Code map](../reticulum-development.md#code-map)             |
 | LoRa BLE/serial, sidecar GATT reconnect, dual-radio wake stagger, BLE coexistence                         | [ble-serial.md](ble-serial.md)                                                          |
 | Renderer hooks/runtimes/stores, protocol entry points, DB, tab wiring                                     | [renderer-hooks.md](renderer-hooks.md)                                                  |
 | Meshtastic config apply, admin, channel URLs, Store & Forward, remote admin, GPS                          | [meshtastic.md](meshtastic.md)                                                          |
@@ -25,4 +24,4 @@ File-level developer notes for each subsystem, for human contributors and coding
 | Symptom → where-to-check index                                                                            | [common-issues.md](common-issues.md)                                                    |
 | Where to look first by area (diagnostics, protocols, lifecycle, DB, BLE, MQTT, Rooms, UI)                 | [architecture-quick-ref.md](architecture-quick-ref.md)                                  |
 
-For user-facing guides, see [reticulum.md](../reticulum.md), [emcomm.md](../emcomm.md), [troubleshooting.md](../troubleshooting.md), [troubleshooting-meshcore.md](../troubleshooting-meshcore.md), [troubleshooting-reticulum.md](../troubleshooting-reticulum.md), and [meshcore-meshtastic-parity.md](../meshcore-meshtastic-parity.md).
+For user-facing guides, see [emcomm.md](../emcomm.md), [troubleshooting.md](../troubleshooting.md), [troubleshooting-meshcore.md](../troubleshooting-meshcore.md), and [meshcore-meshtastic-parity.md](../meshcore-meshtastic-parity.md).

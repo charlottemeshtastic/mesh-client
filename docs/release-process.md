@@ -11,7 +11,7 @@ Cut releases from **Actions → Cut release** ([`cut-release.yaml`](../.github/w
 | Workflow                                            | Purpose                                                                                              |
 | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | [`release.yaml`](../.github/workflows/release.yaml) | Build macOS/Linux/Windows via `electron-builder` (`--publish never`) and attach to the prepare draft |
-| [`flatpak.yaml`](../.github/workflows/flatpak.yaml) | Build Reticulum sidecar + Flatpak bundles (x86_64 and aarch64) and attach them to the same draft     |
+| [`flatpak.yaml`](../.github/workflows/flatpak.yaml) | Build the Bluetooth helper + Flatpak bundles (x86_64 and aarch64) and attach them to the same draft  |
 
 Both workflows upload to a **draft** GitHub Release. A maintainer reviews artifacts and publishes manually when ready.
 
@@ -25,7 +25,7 @@ Documentation deploys separately: [`docs.yml`](../.github/workflows/docs.yml) ru
 
 - **CI:** `schema-release-compare` (Build Binaries, Build Flatpak, and Release) warns when this build’s schema is newer than the last published release. Test builds also upload a `READ-ME-FIRST-*.md` artifact with the download set.
 - **Installers:** when bumped, Windows NSIS shows an advisory MessageBox; macOS/Linux/Flatpak packages may include `SCHEMA-UPGRADE.txt` in app resources.
-- **App launch:** if an existing database’s `user_version` is behind this build, Mesh-Client shows a blocking **Quit / Upgrade** dialog **before** running `runSchemaUpgrade`. Quit leaves the database unchanged. Set `MESH_CLIENT_ACCEPT_SCHEMA_UPGRADE=1` to auto-accept (E2E / automation only).
+- **App launch:** if an existing database’s `user_version` is behind this build, Mesh Hub shows a blocking **Quit / Upgrade** dialog **before** running `runSchemaUpgrade`. Quit leaves the database unchanged. Set `MESH_CLIENT_ACCEPT_SCHEMA_UPGRADE=1` to auto-accept (E2E / automation only).
 - **Too new:** opening a database upgraded by a newer app with an older build still fails with the existing schema-too-new fatal dialog.
 
 ---
@@ -53,7 +53,7 @@ Documentation deploys separately: [`docs.yml`](../.github/workflows/docs.yml) ru
 
 **Secret:** `RELEASE_PUSH_TOKEN` — fine-grained PAT (or GitHub App installation token) owned by a repo **admin** (so the merge-queue ruleset bypass applies), with **contents: write**, **workflows: write**, and **pull requests: write** (also used by `third-party-licenses.yaml` so bot PRs run required checks). Plain `GITHUB_TOKEN` cannot trigger tag workflows, cannot push past the ruleset, and cannot open check-running license PRs.
 
-Version detection lives in [`scripts/detectReleaseBump.mjs`](../scripts/detectReleaseBump.mjs) (handles scoped Conventional Commits such as `feat(rrc): …`). Do not set `MESH_CLIENT_RELEASE_PARSE_ONLY` in Actions (test-only hook; Cut release clears it).
+Version detection lives in [`scripts/detectReleaseBump.mjs`](../scripts/detectReleaseBump.mjs) (handles scoped Conventional Commits such as `feat(meshcore): …`). Do not set `MESH_CLIENT_RELEASE_PARSE_ONLY` in Actions (test-only hook; Cut release clears it).
 
 ---
 
@@ -64,8 +64,8 @@ Local `scripts/release.sh` remains for emergencies when Actions is unavailable. 
 1. Verifies you are on `main` and pulls latest
 2. Runs **`pnpm update`** and **`pnpm dedupe`** (updates lockfile before the bump)
 3. Syncs **`io.github.charlottemeshtastic.MeshHub.yml`** Electron vendored archives to match `package.json` (`node scripts/sync-flatpak-electron.mjs`)
-4. Auto-detects **patch / minor / major** via [`detectReleaseBump.mjs`](../scripts/detectReleaseBump.mjs) (scoped Conventional Commits such as `feat(rrc):` count as **minor**) since the last tag (or accept an explicit bump — see below)
-5. Runs **pre-flight validation** (`check:environment`, release CLI health, format, lint, typecheck, **all** `check:*` scanners including path-gated pre-commit ones, **`check:flatpak`**, **`check:flatpak-offline-pnpm`**, **`check:i18n`**, lockfile re-dedupe stability (not `pnpm dedupe --check` — that breaks hoisted `node_modules/.bin`), audit, **required** actionlint + yamllint, **full** Vitest via `pnpm run test:run`, Reticulum sidecar `cargo test`)
+4. Auto-detects **patch / minor / major** via [`detectReleaseBump.mjs`](../scripts/detectReleaseBump.mjs) (scoped Conventional Commits such as `feat(meshcore):` count as **minor**) since the last tag (or accept an explicit bump — see below)
+5. Runs **pre-flight validation** (`check:environment`, release CLI health, format, lint, typecheck, **all** `check:*` scanners including path-gated pre-commit ones, **`check:flatpak`**, **`check:flatpak-offline-pnpm`**, **`check:i18n`**, lockfile re-dedupe stability (not `pnpm dedupe --check` — that breaks hoisted `node_modules/.bin`), audit, **required** actionlint + yamllint, **full** Vitest via `pnpm run test:run`, Bluetooth helper `cargo test`)
 6. Prints **copy-paste release notes** grouped by feat/fix/other/breaking
 7. Bumps `package.json` via `pnpm version`
 8. Prepends a `<release>` entry to `flatpak/io.github.charlottemeshtastic.MeshHub.metainfo.xml`
@@ -181,30 +181,21 @@ Each job runs `pnpm install --frozen-lockfile`, `pnpm run rebuild`, builds with 
 
 After builds finish, **`packaging-smoke`** runs on:
 
-- macOS — `verify-mac-packaging.mjs` (includes bundled Reticulum sidecar in `.app`)
-- Linux — `verify-linux-packaging.mjs` plus `test-linux-appimage-reticulum-sidecar.mjs` (extracts x64/arm64 AppImages and asserts sidecar). **`verify-linux-packaging.mjs`** also asserts each `.deb` **Description** field is ASCII-only (no mojibake `??`) via `dpkg-deb -f` — non-ASCII control metadata breaks some package managers and mirrors.
+- macOS — `verify-mac-packaging.mjs` (includes the bundled Bluetooth helper in `.app`)
+- Linux — `verify-linux-packaging.mjs` plus `test-linux-appimage-ble-sidecar.mjs` (extracts x64/arm64 AppImages and asserts sidecar). **`verify-linux-packaging.mjs`** also asserts each `.deb` **Description** field is ASCII-only (no mojibake `??`) via `dpkg-deb -f` — non-ASCII control metadata breaks some package managers and mirrors.
 - Windows x64 — NSIS install smoke test (`test-win-nsis-install.mjs`, asserts sidecar after install)
 - **`windows-11-vs2026-arm`** — arm64 NSIS install smoke test with 7z probe (asserts sidecar inside installer payload and after install). Uses GitHub's advance-testing WoA runner ahead of the Sept 2026 VS 2026 rollout on `windows-11-arm`.
 
-Build jobs also run `verify-reticulum-sidecar-staged.mjs` after staging sidecars and before `electron-builder`.
+Build jobs also run `verify-ble-sidecar-staged.mjs` after staging sidecars and before `electron-builder`.
 
 ### `flatpak.yaml` (Build Flatpak)
 
 1. **`schema-release-compare`** — compares this SHA’s schema to the last published release; uploads `READ-ME-FIRST-flatpak.md` (included again beside Flatpak Actions artifacts)
-2. **`reticulum-sidecar`** — builds `mesh-client-reticulum` per arch (x86_64 on `ubuntu-latest`, aarch64 on `ubuntu-24.04-arm`) with full RNS stack features
+2. **`ble-sidecar`** — builds the `mesh-hub-ble` Bluetooth helper per arch (x86_64 on `ubuntu-latest`, aarch64 on `ubuntu-24.04-arm`)
 3. **`flatpak`** — stamps CI build info, writes schema upgrade notice when bumped, generates offline pnpm sources, builds `io.github.charlottemeshtastic.MeshHub.flatpak` per arch inside the Flathub freedesktop 24.08 container, smoke-installs the unstamped bundle (manual **Build Flatpak (no release)** dispatch also renames downloadable artifacts to `…-run{N}.flatpak`; tag runs keep clean names)
 4. **`publish`** (tag only) — waits for the Electron prepare draft (`ci-wait-github-draft-release.mjs`), then attaches both clean-named `.flatpak` files with `ci-upload-release-assets.mjs` using the shared `release_id` (never creates or publishes a release)
 
 Both tag-triggered workflows must complete before the release is fully populated. Flatpak bundles often arrive a few minutes after the Electron artifacts.
-
-### Reticulum sidecar in installers
-
-- **Flatpak:** sidecar is built in CI and embedded under `resources/reticulum-sidecar/` before `flatpak-builder` runs.
-- **macOS / Linux / Windows (Electron):** `release.yaml` / `build.yaml` run `scripts/build-reticulum-sidecar-release.mjs` per platform before `dist:*`, staging per-arch binaries under `resources/reticulum-sidecar/staged/`. The `beforePack` hook in [`electron-builder.yml`](../electron-builder.yml) copies the correct `mesh-client-reticulum` binary into each installer (Windows x64 + arm64, Linux x64 + arm64, macOS x64 + arm64). Packaging verify scripts assert the sidecar is present in unpacked bundles.
-- **Releases before this pipeline shipped** may show “Reticulum sidecar not built” in packaged installs — upgrade to a release that includes the sidecar or use Flatpak on Linux.
-- **Dev builds** use `reticulum-sidecar/target/debug/` instead — see [Reticulum sidecar (optional)](development-environment.md#reticulum-sidecar-optional).
-
----
 
 ## Verify the draft release
 
@@ -277,7 +268,6 @@ Release notes “Breaking Changes” use the same subject bang + footer rules (n
 - [ ] Test download and install on at least one platform
 - [ ] **Publish** the draft on GitHub
 - [ ] Confirm docs site updated after the version commit landed on `main` ([docs workflow](ci-cd.md#docs-docsyml))
-- [ ] Announce (Discord `#mesh-client`, etc.)
 - [ ] Close milestone if used
 
 ---
