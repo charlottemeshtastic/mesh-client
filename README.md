@@ -1,5 +1,12 @@
 # Mesh Hub
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="branding/mesh-hub-wordmark-dark.svg">
+    <img src="branding/mesh-hub-wordmark-light.svg" alt="Mesh Hub" width="420">
+  </picture>
+</p>
+
 > Cross-platform **Electron** desktop client for **Meshtastic** and **MeshCore** on **macOS**, **Linux**, and **Windows** — **BLE**, **USB serial**, **Wi-Fi/TCP**, **MQTT**, local **SQLite** history, **routing diagnostics**, and a **16-language UI**. EMCOMM support via MECP & TAK.
 
 **Mesh Hub** is a fork of [Colorado-Mesh/mesh-client](https://github.com/Colorado-Mesh/mesh-client) focused on Meshtastic and MeshCore only (Reticulum removed), with a new name and color scheme.
