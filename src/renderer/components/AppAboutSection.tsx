@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { MeshHubMark } from './MeshHubMark';
+import { MeshHubWordmark } from './MeshHubWordmark';
 
 const COMMUNITY_LINKS = [
   {
@@ -11,8 +11,7 @@ const COMMUNITY_LINKS = [
 ] as const;
 
 /**
- * App panel "About" block. Holds the community tagline and links that used to live in the footer,
- * and the brand mark that used to live in the header (the v6 shell has neither).
+ * App panel "About" block: the Mesh Hub wordmark, the community tagline and the project link.
  */
 export function AppAboutSection() {
   const { t } = useTranslation();
@@ -21,12 +20,9 @@ export function AppAboutSection() {
       <h3 id="app-about-heading" className="text-muted text-sm font-medium">
         {t('appPanel.aboutSection')}
       </h3>
-      <div className="flex items-center gap-4">
-        <div className="border-ink-800 flex shrink-0 items-center justify-center rounded-lg border p-2">
-          <MeshHubMark />
-        </div>
-        <div className="min-w-0 space-y-1 text-sm">
-          <p className="text-ink-200 font-semibold">{t('app.brandName')}</p>
+      <div className="space-y-2">
+        <MeshHubWordmark label={t('app.brandName')} />
+        <div className="min-w-0 text-sm">
           <p className="text-muted">
             {t('app.footerSlogan')}{' '}
             <span className="inline-flex flex-wrap gap-x-3">

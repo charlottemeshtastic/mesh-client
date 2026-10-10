@@ -7,10 +7,11 @@ import { hydrateAxeThemeColors } from '@/renderer/lib/a11yTestHelpers';
 import { AppAboutSection } from './AppAboutSection';
 
 describe('AppAboutSection', () => {
-  it('renders the brand mark as a static logo, not a button', () => {
+  it('renders the wordmark as a static, labelled logo, not a button', () => {
     const { container } = render(<AppAboutSection />);
 
-    expect(container.querySelector('svg.cm-brand-mark')).not.toBeNull();
+    expect(container.querySelector('svg.cm-brand-wordmark')).not.toBeNull();
+    expect(screen.getByRole('img', { name: 'Mesh Hub' })).toBeInTheDocument();
     expect(screen.queryByRole('button')).toBeNull();
     expect(screen.getAllByRole('link')).toHaveLength(1);
   });

@@ -263,23 +263,24 @@ html[data-reduce-motion='true'] [data-setting-anchor][data-setting-flash] {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Colorado Mesh brand mark (App panel About block). Strokes follow the theme's bright green. */
-.cm-brand-mark {
-  width: 2.25rem;
-  height: 2.25rem;
+/* Mesh Hub wordmark (App panel About block). The orange box and its black "hub" are fixed brand
+   colors; "Mesh" follows the theme's primary text so it stays readable on every surface. */
+.cm-brand-wordmark {
+  height: 2.5rem;
+  width: auto;
   flex-shrink: 0;
 }
 
-.cm-brand-mark-stroke {
-  stroke: var(--color-bright-green, #ffa31a);
-}
-
-.cm-brand-mark-sun {
-  fill: var(--color-bright-green, #ffa31a);
-}
-
-.cm-brand-mark-core {
+.cm-brand-wordmark-text {
   fill: var(--color-ink-50, #ffffff);
+}
+
+.cm-brand-wordmark-box {
+  fill: #ffa31a;
+}
+
+.cm-brand-wordmark-box-text {
+  fill: #000000;
 }
 
 /* IBM Plex Sans (400, 500, 600) and Mono (400, 500): latin, latin-ext and cyrillic subsets,
