@@ -28,12 +28,10 @@ We were inspired by features from these projects:
 
 - [Meshtastic](https://github.com/meshtastic): Open-source, off-grid mesh communication ecosystem
 - [MeshCore](https://github.com/meshcore-dev): Lightweight hybrid routing mesh protocol for packet radios
-- [Reticulum](https://reticulum.network/): Cryptographic mesh networking stack; mesh-client integrates via rsReticulum/rsLXMF sidecar
 - [meshcore-open](https://github.com/zjs81/meshcore-open): Flutter client for MeshCore devices
 - [meshtastic-cli](https://github.com/statico/meshtastic-cli): Terminal UI for monitoring Meshtastic mesh networks
 - [Mesh Monitor](https://meshmonitor.org/): Web-based mesh network monitoring dashboard
 - [CoreScope](https://github.com/Kpa-clawbot/CoreScope): Self-hosted MeshCore network analyzer with RF analytics, packet visualization, and topology tools
-- [Ratspeak](https://github.com/ratspeak/Ratspeak): Primary reference for the Reticulum/rsReticulum/rsLXMF stack, sidecar IPC patterns, and peer interop ([rsReticulum](https://github.com/ratspeak/rsReticulum), [rsLXMF](https://github.com/ratspeak/rsLXMF))
 - [MECP](https://mecp.radio/) ([GitHub](https://github.com/xiang-dev-1/MECP)): Mesh Emergency Communication Protocol — structured emergency text for LoRa mesh (engine GPLv3; language packs CC BY 4.0)
 - [MeshCoreTracker](https://github.com/CopIXus/MeshCoreTracker): GPS tracker firmware for MeshCore radios; inspired parsing of compact tracker-fix messages (`!MT1`) with role tags and rename-safe, identity-based TAK marker IDs
 - [MeshcoreToTAK](https://github.com/CopIXus/MeshcoreToTAK): MeshCore-to-TAK gateway firmware; inspired role-based CoT styling, ordered unit-name filters, MeshCore channel to TAK GeoChat mirroring, and MIL-STD-2525 contact symbology
@@ -42,29 +40,24 @@ We were inspired by features from these projects:
 
 Application source (Electron main / preload / renderer) is **GPL-3.0-or-later**; see [docs/license.md](license.md).
 
-| Binary                  | License           | Role                                                                                     |
-| ----------------------- | ----------------- | ---------------------------------------------------------------------------------------- |
-| `mesh-client-reticulum` | AGPL-3.0-or-later | Spawned Reticulum/LXMF sidecar (separate process; see [docs/reticulum.md](reticulum.md)) |
+| Binary         | License           | Role                                                                                   |
+| -------------- | ----------------- | -------------------------------------------------------------------------------------- |
+| `mesh-hub-ble` | AGPL-3.0-or-later | Bundled Bluetooth helper (separate process; btleplug GATT for Meshtastic and MeshCore) |
 
 ### Bundled fonts
 
 | Font / file                                                                                                                 | License         | Role                                                                                                                                                 |
 | --------------------------------------------------------------------------------------------------------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `MeshClientNomadMono.woff2` (JetBrains Mono Nerd Font Mono, subset)                                                         | OFL-1.1         | Nomad Micron viewer monospace + Nerd/FA PUA icons ([OFL](../src/renderer/assets/fonts/OFL-JetBrainsMonoNerdFont.txt))                                |
 | `assets/fonts/plex/*.woff2` (IBM Plex Sans and IBM Plex Mono, latin, latin-ext and cyrillic subsets, from Fontsource 5.3.0) | OFL-1.1         | App UI typeface, bundled so it works offline ([OFL](../src/renderer/assets/fonts/plex/OFL-IBMPlex.txt))                                              |
 | `emoji-picker-element-data` (dev dependency; its English data, built from emojibase-data 17.0.0, is bundled at build time)  | Apache-2.0, MIT | Linux emoji picker data, bundled so it works offline instead of loading from a CDN ([licenses](../src/renderer/assets/emoji/LICENSE-emoji-data.txt)) |
 
 ### Vendored
 
-| Source / file                                                                                                                                                                                                                          | License           | Role                                                                                                                                                             |
-| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `micron-parser-js`                                                                                                                                                                                                                     | MIT               | Nomad Micron (.mu) → HTML (RFnexus)                                                                                                                              |
-| `src/renderer/lib/mecp/engine/` ([xiang-dev-1/MECP](https://github.com/xiang-dev-1/MECP))                                                                                                                                              | GPLv3             | MECP encode/decode engine                                                                                                                                        |
-| `src/renderer/lib/mecp/languages/*.json`                                                                                                                                                                                               | CC BY 4.0         | MECP localized code/category strings (see upstream `LICENSE-LANGUAGES`)                                                                                          |
-| `resources/geo/cities15000.tsv` ([GeoNames](https://www.geonames.org/))                                                                                                                                                                | CC BY 4.0         | Offline place lookup for weather forecasts on the map (`scripts/build-geo-gazetteer.mjs`)                                                                        |
-| `reticulum-sidecar/vendor/ratspeak_vault.rs` ([ratspeak/Ratspeak](https://github.com/ratspeak/Ratspeak))                                                                                                                               | AGPL-3.0-or-later | Ratspeak identity vault (Argon2id passcode sealing); upstream commit cited in the file header                                                                    |
-| `src/renderer/lib/reticulum/lxmface.ts` ([ratspeak/LXMFace](https://github.com/ratspeak/LXMFace), adapted from [download13/blockies](https://github.com/download13/blockies))                                                          | MIT               | Deterministic identicon SVG for LXMF destination hashes                                                                                                          |
-| `src/renderer/lib/flasher/` `rnode.ts`, `nrf52DfuFlasher.ts`, `binaryUtils.ts`, `displayUtils.ts`, `md5.ts`, `firmwareConfigs.ts`, `firmwareDownloadUrls.ts` ([liamcottle/rnode-flasher](https://github.com/liamcottle/rnode-flasher)) | MIT               | RNode KISS protocol, nRF52 DFU flasher, helpers and product catalog ported from rnode-flasher ([license](../src/renderer/lib/flasher/LICENSE-rnode-flasher.txt)) |
+| Source / file                                                                             | License   | Role                                                                                      |
+| ----------------------------------------------------------------------------------------- | --------- | ----------------------------------------------------------------------------------------- |
+| `src/renderer/lib/mecp/engine/` ([xiang-dev-1/MECP](https://github.com/xiang-dev-1/MECP)) | GPLv3     | MECP encode/decode engine                                                                 |
+| `src/renderer/lib/mecp/languages/*.json`                                                  | CC BY 4.0 | MECP localized code/category strings (see upstream `LICENSE-LANGUAGES`)                   |
+| `resources/geo/cities15000.tsv` ([GeoNames](https://www.geonames.org/))                   | CC BY 4.0 | Offline place lookup for weather forecasts on the map (`scripts/build-geo-gazetteer.mjs`) |
 
 ### Chat translation
 

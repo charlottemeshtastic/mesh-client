@@ -1,6 +1,6 @@
 # Key backup and cryptography
 
-Mesh-Client stores **different kinds of keys in different places**. Meshtastic and MeshCore **Security** tabs each back up a **full key pair** (public + private) **per node**, indexed by **node number** (Meshtastic `nodeNum`, MeshCore `nodeId`). The **private key** restores mesh identity after factory reset; **public key alone is not enough**, but every backup payload includes both keys.
+Mesh Hub stores **different kinds of keys in different places**. Meshtastic and MeshCore **Security** tabs each back up a **full key pair** (public + private) **per node**, indexed by **node number** (Meshtastic `nodeNum`, MeshCore `nodeId`). The **private key** restores mesh identity after factory reset; **public key alone is not enough**, but every backup payload includes both keys.
 
 **Per-node archives are created only when you click Backup Keys** on that protocol’s Security tab. Opening Security, connecting a radio, or importing Radio JSON updates the MeshCore **MQTT active cache** only — it does **not** create a per-node backup.
 
@@ -137,7 +137,7 @@ Flashing MeshCore firmware on hardware that previously ran Meshtastic **replaces
 ### What this does **not** do
 
 - Does **not** migrate Meshtastic identity into MeshCore contacts — peers see a **new** public key after flash.
-- Does **not** replace MeshCore companion full JSON backup tools; use Security **Backup Keys** for Mesh-Client per-node archives.
+- Does **not** replace MeshCore companion full JSON backup tools; use Security **Backup Keys** for Mesh Hub per-node archives.
 
 ### Full companion JSON backup (evaluation, 2026)
 

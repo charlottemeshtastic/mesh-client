@@ -6,8 +6,8 @@ We take the security of our project seriously and appreciate your efforts to hel
 
 If you believe you have found a security vulnerability, please **do not report it via a public GitHub issue**. Instead, please
 
-- send an email to: **nv0n@coloradomesh.org** or,
-- DM nv0n on our Discord
+- open a private report at <https://github.com/charlottemeshtastic/mesh-client/security/advisories/new>, or
+- contact the repository owner, [@charlottemeshtastic](https://github.com/charlottemeshtastic), on GitHub
 
 To help us investigate and triage the issue as quickly as possible, please include:
 

@@ -18,7 +18,7 @@ MECP/<severity>/<codes> [freetext]
 
 ## Receive path
 
-1. Messages land in `messageStore` as normal chat text (Meshtastic RF/MQTT, MeshCore, Reticulum).
+1. Messages land in `messageStore` as normal chat text (Meshtastic RF/MQTT, MeshCore).
 2. Meshtastic **`ALERT_APP`** (port 11) is decoded like `TEXT_MESSAGE_APP` in `MeshtasticProtocol` / MQTT.
 3. `useMecpAlertWatcher` (mounted once from `App.tsx`):
    - Seeds a dedup set at mount (no alert/audit on hydration)
@@ -44,7 +44,7 @@ Default tone shapes and timings: [notification-sounds.md — Default MECP tone s
 ## Spam and full node blocks
 
 - MECP-only blocks and the throttle are described under [Receive path](#receive-path). Node IDs (especially Meshtastic) are spoofable, so blocks stop casual abuse; the throttle covers id-hopping floods.
-- **Full LoRa node block:** Node Detail **Block** writes `blocked_contacts` with `protocol` = `meshtastic` / `meshcore` and the stable scope `LORA_BLOCKLIST_SCOPE_ID` (`lora-blocklist`), not the per-connection identity id. `blockStore` holds one bucket per protocol (`byProtocol`); App hydrates both LoRa buckets on mount (`hydrateLoraBlocklists`), `useReticulumRuntime` hydrates Reticulum. `PacketRouter.dispatch` drops `text_message` from a blocked sender before the store write and listeners (`isLoraSenderBlocked`: Meshtastic decimal node id; MeshCore node id or registered 32-byte pubkey hex), and Meshtastic MQTT ingest checks the same helper. Channel senders known only by a MeshCore display-name stub cannot be matched. Rows already in SQLite are not deleted. Unblock in App → Blocked nodes (`LoraBlockedNodesSection`)
+- **Full LoRa node block:** Node Detail **Block** writes `blocked_contacts` with `protocol` = `meshtastic` / `meshcore` and the stable scope `LORA_BLOCKLIST_SCOPE_ID` (`lora-blocklist`), not the per-connection identity id. `blockStore` holds one bucket per protocol (`byProtocol`); App hydrates both LoRa buckets on mount (`hydrateLoraBlocklists`). `PacketRouter.dispatch` drops `text_message` from a blocked sender before the store write and listeners (`isLoraSenderBlocked`: Meshtastic decimal node id; MeshCore node id or registered 32-byte pubkey hex), and Meshtastic MQTT ingest checks the same helper. Channel senders known only by a MeshCore display-name stub cannot be matched. Rows already in SQLite are not deleted. Unblock in App → Blocked nodes (`LoraBlockedNodesSection`)
 
 ## Send path
 
@@ -54,7 +54,6 @@ Default tone shapes and timings: [notification-sounds.md — Default MECP tone s
 - **What counts as acknowledged** ([`networkAckAwait.ts`](../../src/renderer/lib/networkAckAwait.ts) `awaitNetworkAck`), any one of:
   - Meshtastic: device `acked` (routing ACK on a DM, implicit ACK / rebroadcast heard on a channel) or MQTT publish `acked`
   - MeshCore: DM ACK (event 130); channel floods need at least one repeater in the heard-repeat window (companion accept alone does not count)
-  - Reticulum: LXMF receipt (or remote PN `propagated`), same as `assertReticulumSendAcked`
   - Any protocol: another station's R01 echoing our codes (or our severity when it echoes none), a B02 for our B01, or a relayed copy of the same payload (`isPeerMecpNetworkAck`)
 - **Stopping retries:** the outbox row shows "Waiting for network acknowledgement…" while a send is in flight and a countdown while backing off. **Stop retrying** (confirm) aborts any in-flight wait (`abortOutboxRowSend` in [`chatOutboxDrain.ts`](../../src/renderer/lib/chatOutboxDrain.ts)) and deletes the row; the drain does not re-persist a cancelled row.
 - Attach GPS uses the app share-location waterfall (`resolveShareLocation`), not raw `navigator.geolocation` alone

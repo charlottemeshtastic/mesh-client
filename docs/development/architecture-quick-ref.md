@@ -6,7 +6,7 @@ Developer reference: where to look first by area. Moved out of [`ARCHITECTURE.md
 
 - **Engines:** `src/renderer/lib/diagnostics/`; `RoutingDiagnosticEngine.ts`, `RFDiagnosticEngine.ts`, `RemediationEngine.ts`.
 - **Store:** `src/renderer/stores/diagnosticsStore.ts`; routing/RF rows, foreign LoRa, MQTT ignore, redundancy.
-- **Tab scoping:** `filterDiagnosticRowsForProtocol()` — Meshtastic/MeshCore tabs show LoRa rows only; Reticulum tab shows `reticulum/*` only. Foreign-LoRa tables UI is on Meshtastic and MeshCore tabs (keyed by that protocol’s self node id).
+- **Tab scoping:** switching protocol tabs clears and recomputes LoRa rows for that protocol. Foreign-LoRa tables UI is on Meshtastic and MeshCore tabs (keyed by that protocol’s self node id).
 - **Extend:** adjust `DiagnosticRow` in `src/renderer/lib/types.ts`, add detector, wire `replaceRoutingRowsFromMap` / `replaceRfRowsForNode`; TTL defaults in `diagnosticRows.ts` (routing 24h, RF 1h).
 - **Node health score:** `src/renderer/lib/nodeHealthScore.ts`; `nodeHealthScore(node)` → `NodeHealthBreakdown`; `nodeHealthTier(total)` → color tier.
 - **Watch/notify:** `src/renderer/stores/watchedNodesStore.ts` (persisted Set<nodeId>); `src/renderer/hooks/useNodeStatusNotifier.ts` (fires OS Notification on online/offline transitions).
@@ -22,7 +22,7 @@ Developer reference: where to look first by area. Moved out of [`ARCHITECTURE.md
 
 **First places to look:** `runtime/useMeshtasticRuntime.ts` / `runtime/useMeshcoreRuntime.ts` (protocol side effects); `hooks/useProtocolConnection.ts` (connect); `stores/*` (UI state); `src/main/index.ts` (IPC).
 
-**Renderer layers:** `runtime/` (single-mount protocol runtimes), `hooks/` (facades and store selectors), `lib/` (drivers, sessions, types), `stores/` (identity-scoped UI: `identityStore`, `nodeStore`, `messageStore`, `connectionStore`; Reticulum also uses session-global `reticulumIdentityStore` for sidecar identity status). Prefer `useProtocolFacade(protocol)` in App for new wiring. Hook/runtime boundaries: [renderer-hooks.md](renderer-hooks.md) ([#375](https://github.com/charlottemeshtastic/mesh-client/issues/375), [#377](https://github.com/charlottemeshtastic/mesh-client/issues/377)).
+**Renderer layers:** `runtime/` (single-mount protocol runtimes), `hooks/` (facades and store selectors), `lib/` (drivers, sessions, types), `stores/` (identity-scoped UI: `identityStore`, `nodeStore`, `messageStore`, `connectionStore`). Prefer `useProtocolFacade(protocol)` in App for new wiring. Hook/runtime boundaries: [renderer-hooks.md](renderer-hooks.md) ([#375](https://github.com/charlottemeshtastic/mesh-client/issues/375), [#377](https://github.com/charlottemeshtastic/mesh-client/issues/377)).
 
 **Drivers / identity bridge:** `lib/drivers/ConnectionDriver.ts` owns RF/MQTT session lifecycle and dispatches Protocol events into `lib/drivers/PacketRouter.ts` (store ingest first, then side-effect listeners). `PacketRouter` invokes generic listeners before event-type listeners, in registration order within each group; attach persistence/ingest before dependent UI side effects. `lib/meshIdentityBridge.ts` builds transport params and attaches Meshtastic Protocol ingress; `lib/identityStoreReads.ts` is the canonical read path for identity-scoped nodes/messages (`getIdentityNode` / `getIdentityChatMessages`).
 
@@ -30,7 +30,6 @@ Developer reference: where to look first by area. Moved out of [`ARCHITECTURE.md
 
 - **Meshtastic:** `runtime/useMeshtasticRuntime.ts`, `lib/protocols/MeshtasticProtocol.ts`, `lib/connection.ts` (`createConnection`).
 - **MeshCore:** `runtime/useMeshcoreRuntime.ts`, `lib/protocols/MeshCoreProtocol.ts`, `@liamcottle/meshcore.js`.
-- **Reticulum:** `runtime/useReticulumRuntime.ts`, `lib/sessions/reticulumSession.ts`, `components/ReticulumMapPanel.tsx`, `components/ReticulumRemotePanel.tsx`, `components/NomadNetworkPanel.tsx`, `components/RrcPanel.tsx`, `stores/reticulumDiscoveryMapStore.ts`, `stores/reticulumPeerStore.ts`, `stores/rncpTransferStore.ts`, `stores/rnshSessionStore.ts`, `stores/rrcHubStore.ts`, `stores/rrcSessionStore.ts`, `reticulum-sidecar/` (AGPL `mesh-client-reticulum` including `rrc_*` / `rnsh_*` / `rncp_*` modules); IPC `reticulum:*` in main with typed `electronAPI.reticulum.rrc|rnsh|rncp|remote`; RMAP map data: sidecar `DiscoveryStore` → REST/WS → store → join `reticulumPeerStore` for reachability; docs [docs/reticulum.md](../reticulum.md), [docs/reticulum-sidecar-ipc.md](../reticulum-sidecar-ipc.md).
 
 ## App lifecycle (mount once from `App.tsx`)
 
@@ -47,7 +46,7 @@ Developer reference: where to look first by area. Moved out of [`ARCHITECTURE.md
 
 ## BLE and serial
 
-- Meshtastic / MeshCore BLE: sidecar GATT (`gatt-sidecar-proxy.ts`, `transportSidecarGatt.ts`, `gatt:*` IPC) on all platforms. Reticulum BLE RNode/Peer runs in the same process with separate BLE centrals managed by rsReticulum. Main-process `ble-coexistence-coordinator.ts` tracks pending/live LoRa connections and configured Reticulum addresses, and serializes app-requested scans and LoRa connection setup. Autonomous rsReticulum discovery/reconnect remains outside that lease. Serial: `lib/connection.ts`, `serialPortSignature.ts`. Connection panel errors: `lib/connectionPanelErrorHumanize.ts` (`connectionPanel.errors.ble.*`). Reconnect watchdog: `runtime/useMeshtasticRuntime.ts`.
+- Meshtastic / MeshCore BLE: sidecar GATT (`gatt-sidecar-proxy.ts`, `transportSidecarGatt.ts`, `gatt:*` IPC) on all platforms. Main-process `ble-coexistence-coordinator.ts` tracks pending/live LoRa connections and serializes app-requested scans and LoRa connection setup. The Bluetooth helper process is owned by `ble-sidecar-manager.ts`. Serial: `lib/connection.ts`, `serialPortSignature.ts`. Connection panel errors: `lib/connectionPanelErrorHumanize.ts` (`connectionPanel.errors.ble.*`). Reconnect watchdog: `runtime/useMeshtasticRuntime.ts`.
 - **GATT writes:** Each Meshtastic ToRadio protobuf or MeshCore command is one characteristic value, capped at 512 bytes. Prefer writes with response when supported; let the OS handle ATT long writes. btleplug 0.11.8 does not expose negotiated MTU, so the sidecar does not infer a 20-byte application frame limit.
 
 ## MQTT

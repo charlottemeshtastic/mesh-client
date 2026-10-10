@@ -27,7 +27,7 @@ Developer reference for the **Settings** group in the Ctrl/Cmd+K launcher (`Pane
 
 ## Id convention
 
-`<slotCamel>.<subsectionCamel>.<settingCamel>` (two segments allowed), e.g. `app.gps.shareLocation`, `radio.lora.region`. The first segment is the owning `TabSlotId` with a lowercase first letter. Ids are globally unique and appear **once** per component file. Rows rendered in mutually exclusive protocol branches get distinct ids (`app.retention.meshcoreMessageCap` vs `app.retention.reticulumMessageCap`) with matching capability predicates.
+`<slotCamel>.<subsectionCamel>.<settingCamel>` (two segments allowed), e.g. `app.gps.shareLocation`, `radio.lora.region`. The first segment is the owning `TabSlotId` with a lowercase first letter. Ids are globally unique and appear **once** per component file. Rows rendered in mutually exclusive protocol branches get distinct ids (for example `app.retention.meshcoreMessageCap`) with matching capability predicates.
 
 ## Visibility rule
 

@@ -1,6 +1,6 @@
 # Localization & Languages
 
-Mesh-Client is designed to be accessible to mesh users worldwide. The application currently supports **16 languages** and uses static translation bundles to ensure full functionality even when offline.
+Mesh Hub is designed to be accessible to mesh users worldwide. The application currently supports **16 languages** and uses static translation bundles to ensure full functionality even when offline.
 
 ---
 
@@ -41,13 +41,13 @@ The application will immediately update the UI strings. Your language preference
 
 ## Contributing Translations
 
-Most translations in Mesh-Client are initially machine-generated using [MyMemory](https://mymemory.translated.net/). We rely on community contributions to improve translation quality and accuracy.
+Most translations in Mesh Hub are initially machine-generated using [MyMemory](https://mymemory.translated.net/). We rely on community contributions to improve translation quality and accuracy.
 
 ### Reporting an Error
 
 If you find a mistranslation or an awkward phrasing:
 
-1. Go to the [Mesh-Client Issues](https://github.com/charlottemeshtastic/mesh-client/issues) page.
+1. Go to the [Mesh Hub Issues](https://github.com/charlottemeshtastic/mesh-client/issues) page.
 2. Open a new [Translation Error](https://github.com/charlottemeshtastic/mesh-client/issues/new?assignees=&labels=translation&template=translation-error.md&title=Translation+Error) issue.
 3. Provide the current text and your suggested correction.
 
@@ -63,7 +63,7 @@ If you would like to help us add support for a new language:
 
 ## Offline Support
 
-Translations are bundled as static JSON files within the application. Unlike many web apps, Mesh-Client **does not make network calls** to fetch translations at runtime. This ensures that the interface remains in your preferred language even when you are operating off-grid or in environments with no internet access.
+Translations are bundled as static JSON files within the application. Unlike many web apps, Mesh Hub **does not make network calls** to fetch translations at runtime. This ensures that the interface remains in your preferred language even when you are operating off-grid or in environments with no internet access.
 
 ---
 
@@ -90,7 +90,7 @@ Delete the key from `en/translation.json`, then run `pnpm run i18n:prune-unused 
 | Audit                  | add `--audit` or `I18N_AUDIT=1`                                | Also retranslates keys whose locale value is still identical to English                                         |
 | Limit to a key subtree | add `--prefix a.b,c.d` (or `--prefix=a.b`)                     | Only keys equal to, or nested under, a prefix (`modulePanel` matches `modulePanel.foo`, not `modulePanelExtra`) |
 
-MyMemory sends the contact `info@coloradomesh.org` by default for its 50k words/day quota; override with `MYMEMORY_EMAIL`.
+MyMemory runs anonymously by default (smaller daily quota); set `MYMEMORY_EMAIL` to your contact email for its 50k words/day quota.
 
 ### Key and quality check
 
@@ -104,11 +104,10 @@ CI does **not** run `check:i18n` as a standalone workflow step. Quality rules ru
 
 - **Mojibake** — garbled encodings are rejected.
 - **Dash placeholders** — any English value that is a single dash (such as `common.emDash` or `signalMeter.noData`) must match exactly.
-- **Boot-sequence transport labels** and **RRC slash-command tokens** — kept verbatim; RRC room wording must avoid false friends.
-- **Reticulum hub/stack** (`connectionPanel.reticulumInterfaces.*`, `reticulumStack*`, `reticulumPeers.*`) — “hub”, “stack”, “peer”, and “host” must not become unrelated words (pressure, colleague, chimney stack, etc.).
+- **Boot-sequence transport labels** — kept verbatim.
 - **TX/RX Texas** — radio `TX`/`RX` must not become the US state (Teksas, Техас, 德克萨斯) on any key.
 - **URI / token spacing** — `tcp://`, `Wi-Fi`, and `I2P` must stay contiguous (no CAT `tcp ://` / `Wi - Fi` / `I 2 P`).
-- **Flood / advert / room / backbone** — gated by English meaning, not a handful of leaf names (routing Flood, mesh advert, MeshCore/RRC room, network backbone — not water, ads, hotels, or spines).
+- **Flood / advert / room / backbone** — gated by English meaning, not a handful of leaf names (routing Flood, mesh advert, MeshCore room, network backbone — not water, ads, hotels, or spines).
 - **Routing-port identifiers** — `NodeInfo`, `Telemetry`, `NeighborInfo`, `DiscoveryFlood`, `RoomAdvert` must match English verbatim (matched on the English value, not camelCase leaf names).
 - **gamesPanel** — resign is forfeit (not quitting a job); draw is a tie (not a sketch/lottery); challenge/threefold are chess terms.
 - **Repeaters CLI danger confirm** (`repeatersPanel.cliDangerConfirmAction`) — confirm button must be translated and must not read like “delete” or other false friends.

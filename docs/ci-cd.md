@@ -1,6 +1,6 @@
 # CI/CD Workflows
 
-Mesh-Client uses GitHub Actions for continuous integration and deployment.
+Mesh Hub uses GitHub Actions for continuous integration and deployment.
 
 ---
 
@@ -9,11 +9,11 @@ Mesh-Client uses GitHub Actions for continuous integration and deployment.
 | Workflow                    | Trigger                                      | Purpose                                                                          |
 | --------------------------- | -------------------------------------------- | -------------------------------------------------------------------------------- |
 | `ci.yaml`                   | Push/PR/`merge_group`/`workflow_dispatch`    | Lint, typecheck, build, policy scanners, Flatpak manifest validation             |
-| `tests.yaml`                | Push/PR/`merge_group`/`workflow_dispatch`    | Vitest coverage + merge; Reticulum sidecar `llvm-cov` when sidecar paths change  |
+| `tests.yaml`                | Push/PR/`merge_group`/`workflow_dispatch`    | Vitest coverage + merge; Bluetooth helper `llvm-cov` when sidecar paths change   |
 | `buttonmash.yaml`           | PR/`merge_group`/`workflow_dispatch`         | Browser-based chaos testing of the Vite renderer                                 |
 | `e2e.yaml`                  | Daily on `main` + manual `workflow_dispatch` | Playwright Electron E2E (unpackaged build, 3-OS) + Release preflight; no PR gate |
 | `build.yaml`                | Manual `workflow_dispatch`                   | Native 3-OS packaging smoke build (+ schema compare vs last official)            |
-| `reticulum-sidecar.yaml`    | Path-filtered push/PR to `main`              | Sidecar fmt + Clippy (ubuntu); multi-OS matrix build/test                        |
+| `ble-sidecar.yaml`          | Path-filtered push/PR to `main`              | Sidecar fmt + Clippy (ubuntu); multi-OS matrix build/test                        |
 | `release.yaml`              | Version tags (`v*`)                          | Build & publish releases (AppImage/deb/rpm)                                      |
 | `flatpak.yaml`              | Version tags (`v*`), manual                  | Build Flatpak (+ schema compare vs last official); publish to release on tags    |
 | `cut-release.yaml`          | Manual `workflow_dispatch`                   | **Primary** release cut in Actions (needs admin `RELEASE_PUSH_TOKEN`)            |
@@ -70,7 +70,7 @@ Runs on every push, pull request, and merge-queue `merge_group` for `main`:
 4. **Protected events:** `merge_group`, pushes to `main`, and manual runs always run full coverage across `renderer-ui`, `renderer-logic`, and `main`.
 5. **Sharding:** `renderer-ui` runs in three shards; `renderer-logic` and `main` each run once. This applies to both related tests and full coverage. Full runs upload blob reports; related runs write JUnit reports named `junit-<project>-<shard>-<total>.xml` and print results in each shard's log. The existing `Coverage (...)` required checks verify that detection and every shard succeeded.
 6. **Merge job:** collect related JUnit reports without checkout, Node/pnpm setup, or dependency installation. Full runs (protected events and PRs that cannot be safely scoped) still run `pnpm run test:coverage:merge` to enforce global thresholds.
-7. **`reticulum-sidecar-coverage`:** when sidecar paths change, clone the `.rsstack/` workspace, run `cargo llvm-cov --fail-under-lines 45`, and upload `lcov.info`.
+7. **`ble-sidecar-coverage`:** when Bluetooth helper paths change, run `cargo llvm-cov --fail-under-lines 45`, and upload `lcov.info`.
 8. Upload the `vitest-report` artifact (retained 7 days): separate JUnit files for related shards, including empty shards and available reports from failed runs; one merged `junit.xml` for full runs.
 
 The three `Coverage (...)` job names and `Merge coverage` remain stable for the repository ruleset, including when a project or the whole test matrix has no relevant PR work. Superseded runs for the same pull request or ref are cancelled.
@@ -92,21 +92,6 @@ Not a PR gate. Runs on a **daily schedule** (default branch only) and on **manua
 A separate **Release preflight** job (`ubuntu-latest`) runs `pnpm run release -- --preflight-only` with the same `setup-node-pnpm` + `setup-release-toolchain` composites as `cut-release.yaml`, stopping before any bump, tag, or push. Check it is green before cutting a release.
 
 Local: `pnpm run test:e2e:build`. See [development-environment.md](development-environment.md#playwright-electron-e2e).
-
-### Reticulum sidecar (`reticulum-sidecar.yaml`)
-
-Path-filtered on `reticulum-sidecar/**` and related scripts:
-
-1. **`lint` job (ubuntu-latest)** — `cargo fmt --check` + `cargo clippy` with `rns-stack,rns-ble,rns-rnode-tcp` (`-D warnings`)
-2. **Build matrix** — stub + full-stack `cargo test` and release builds on Linux, macOS, and Windows. The WoA arm64 jobs cross-compile release binaries on Windows x64 runners; the Windows x64 matrix jobs run the corresponding host tests once.
-
-The full-stack matrix and the two WoA jobs cache Cargo downloads and compiled dependencies with `Swatinem/rust-cache`, separately by job, target triple, and Rust toolchain. The cache is restored after cloning the current Ratspeak sources, applying overlays, and selecting the toolchain. The sidecar workspace crate is excluded, so every run still invokes Cargo to rebuild changed path dependencies and the executable. Host tests run on cache hits as well as misses; a cache miss performs a normal build. Release optimization and linking still run, so warm jobs retain some compilation cost.
-
-CI and local **dev** clones float the `.rsstack/` workspace via `scripts/clone-ratspeak-stack.sh` to `origin/main` (overlays must apply; optional `RS_RETICULUM_REF` / `RS_LXMF_REF` / `RS_NOMAD_REF` / `RS_LXST_REF` / `RS_LRGP_REF` for bisect only — CI never pins Ratspeak SHAs). Open upstream feature PRs needed before they land on `main` (e.g. [rsReticulum#26](https://github.com/ratspeak/rsReticulum/pull/26) ReplyFile, [rsLXMF#7](https://github.com/ratspeak/rsLXMF/pull/7) multi-file attachments) are carried as overlays under `reticulum-sidecar/patches/` and tracked by `RATSPEAK_PATCH_ENTRIES` in `scripts/update.sh`. **Release** packaging (`scripts/build-reticulum-sidecar-release.mjs`) runs the same clone and records the resolved commit SHAs for all five crates in `.rsstack/RESOLVED_SHAS.txt` so artifacts retain the exact source revisions used — set `RS_*_REF` only when a release must not float.
-
-Local parity: `pnpm run reticulum:sidecar:clippy:full`, `pnpm run check:reticulum-sidecar` (pre-commit full-feature). See [development-environment.md](development-environment.md#reticulum-sidecar-optional).
-
----
 
 ## CodeRabbit
 
@@ -149,7 +134,7 @@ Builds Flatpak bundles using [`flatpak/flatpak-github-actions`](https://github.c
 A matrix builds **x86_64** and **aarch64** in parallel. Both use the same privileged `ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-24.08` container (Flathub remote, `flatpak-builder`, and system-scope runtime installs). **x86_64** runs on `ubuntu-latest`; **aarch64** runs on `ubuntu-24.04-arm` (native ARM runners — not QEMU on bare Ubuntu).
 
 1. **`schema-release-compare`** — same compare as Build Binaries / Release; uploads `READ-ME-FIRST-flatpak.md` and feeds `write-schema-upgrade-notice.mjs` so bumped schemas embed `SCHEMA-UPGRADE.txt` under Flatpak `resources/`
-2. Builds the Reticulum sidecar on bare Ubuntu runners, then generates `flatpak/generated-sources.json` via `flatpak-node-generator`
+2. Builds the Bluetooth helper on bare Ubuntu runners, then generates `flatpak/generated-sources.json` via `flatpak-node-generator`
 3. Stamps CI build info (`test` on dispatch / `release` on tag), builds from `io.github.charlottemeshtastic.MeshHub.yml` with offline pnpm sources
 4. Smoke-installs the unstamped local bundle; on **dispatch only**, renames to `io.github.charlottemeshtastic.MeshHub-run{N}.flatpak`
 5. Uploads `io.github.charlottemeshtastic.MeshHub.flatpak-{x86_64,aarch64}.flatpak` artifacts (file basename stamped on test builds) plus per-arch `flatpak-schema-warning-*`
@@ -199,14 +184,8 @@ Automated dependency updates are configured in `.github/dependabot.yml`:
 - **GitHub Actions:** Grouped into one PR
 - **Open PRs:** `open-pull-requests-limit: 0` — Dependabot scans but does **not** open PRs.
   Dependency bumps are applied manually via `pnpm run update` (`scripts/update.sh`), which
-  also runs dedupe, Ratspeak overlay PR checks
-  ([rsReticulum#26](https://github.com/ratspeak/rsReticulum/pull/26) ReplyFile and
-  [rsLXMF#7](https://github.com/ratspeak/rsLXMF/pull/7) multi-file attachments are overlays
-  on floated `origin/main` — see `reticulum-sidecar/patches/README.md`), and an upstream
-  release / new-org-repo watch (rsLXST, lrgp-rs, Ratspeak Games-parity when a newer published
-  release exists, LXMFace `js/lxmface.js` commit). Sibling **rsReticulum** /
-  **rsLXMF** / **rsNomad** / **rsLXST** / **lrgp-rs** float to `origin/main` via
-  `clone-ratspeak-stack.sh` (overlays must apply; no committed SHA pins). See AGENTS.md §6.
+  also runs dedupe, rebuilds the Bluetooth helper, and checks the vendored MECP
+  upstream for changes. See AGENTS.md §6.
 
 ### Testing Dependabot PRs locally
 
@@ -278,9 +257,7 @@ pnpm run act:build:linux        # container
 pnpm run act:build:linux:native # host (best on Linux)
 
 # Heavier workflows (container only unless noted)
-pnpm run act:reticulum
-pnpm run act:reticulum:native # stub sidecar cargo test/build on host
-pnpm run act:flatpak          # docker only
+pnpm run act:flatpak # docker only
 
 # Override mode on one invocation
 node scripts/run-act.mjs ci --native
@@ -348,8 +325,8 @@ Each required check is pinned with `integration_id` **15368** (GitHub Actions) i
 
 **Do not** add these as required (they skip or are not PR/`merge_group` gates and would stall the queue):
 
-- `Reticulum sidecar coverage` (path-filtered)
-- `fmt + clippy` / sidecar build matrix (`reticulum-sidecar.yaml`, path-filtered)
+- `Bluetooth helper coverage` (path-filtered)
+- `fmt + clippy` / sidecar build matrix (`ble-sidecar.yaml`, path-filtered)
 - CodeQL `Analyze (*)` — **default setup does not run on `merge_group`**; CodeQL still runs on PRs/pushes. Requiring it would hang the merge queue until advanced setup + `merge_group` exists.
 - E2E, packaging smoke, Flatpak, release jobs
 
@@ -398,7 +375,7 @@ The pre-commit hook (`.githooks/pre-commit`) runs checks beyond what GitHub Acti
 - **Staged-file** Prettier + markdownlint (not a full-tree `pnpm run format` / `lint:md`)
 - `pnpm dedupe` when dependency manifests are staged
 - `pnpm run i18n:auto-translate` when `en/translation.json` is staged (fills new English keys vs `HEAD`) + re-stages locales
-- Staged ESLint (`--cache`) + full `typecheck`; path-gated `typecheck:strict-shared` when shared paths staged; always-on cheap `check:*` scanners; path-gated flatpak / DB / IPC / reticulum catalog / full-feature sidecar checks (sidecar also requires `cargo` on `PATH` when sidecar paths are staged; `check:i18n` when English locale staged, else `check:i18n:branch`)
+- Staged ESLint (`--cache`) + full `typecheck`; path-gated `typecheck:strict-shared` when shared paths staged; always-on cheap `check:*` scanners; path-gated flatpak / DB / IPC / Bluetooth helper sidecar checks (sidecar also requires `cargo` on `PATH` when sidecar paths are staged; `check:i18n` when English locale staged, else `check:i18n:branch`)
 - Before PR: `pnpm run check:pr` (full lint + typecheck + strict-shared + `test:run` + path-aware sidecar)
 - `pnpm audit` only when dependency manifests staged; `actionlint` / `yamllint` only when relevant files are staged
 - `pnpm run test:staged` (`scripts/precommit-tests.mjs`: staged-only `vitest related`; full suite when vitest config/setup mocks or dependency manifests change; skip when no source/test staged)
@@ -433,15 +410,15 @@ CI focuses on lint, typecheck, build, cheap always-on policy scanners, Flatpak m
 
 ## Packaging smoke builds (`build.yaml` / `flatpak.yaml` / `release.yaml`)
 
-`build.yaml` and `release.yaml` call `packaging-sidecars.yaml` to build the x64 and ARM64 Reticulum sidecars in parallel on separate runners (job UI: **Stage Reticulum**). Each OS runs the full-feature host tests once in its native architecture job. Release platform selection applies to both the sidecar and Electron matrices. Packaging starts after the selected sidecars succeed, so a failed build or test blocks the installers.
+`build.yaml` and `release.yaml` call `packaging-sidecars.yaml` to build the x64 and ARM64 Bluetooth helpers in parallel on separate runners (job UI: **Stage Bluetooth helper**). Each OS runs the host tests once in its native architecture job. Release platform selection applies to both the sidecar and Electron matrices. Packaging starts after the selected sidecars succeed, so a failed build or test blocks the installers.
 
-The sidecars reach the packaging jobs as tar archives from the same workflow run (`ci-reticulum-staged-{platform}-{arch}` — internal handoff only; not installer downloads). Tar preserves Unix executable permissions; each architecture also carries its own `RESOLVED_SHAS.txt` for the freshly cloned Ratspeak sources. The download action verifies that both platform binaries are staged before Electron packaging. Installer names, signing, updater metadata, and the four packaging smoke jobs remain the same. The existing `reticulum-sidecar.yaml` checks remain independent.
+The sidecars reach the packaging jobs as tar archives from the same workflow run (`ci-ble-staged-{platform}-{arch}` — internal handoff only; not installer downloads). Tar preserves Unix executable permissions. The download action verifies that both platform binaries are staged before Electron packaging. Installer names, signing, updater metadata, and the four packaging smoke jobs remain the same. The existing `ble-sidecar.yaml` checks remain independent.
 
 **Actions artifact zip names (installer downloads):** Release keeps `mesh-client-{macos|linux|windows}-{sha}`. Build Binaries (always `workflow_dispatch`) uses the same names with a `test-` prefix (`test-mesh-client-…`) so testers can tell them apart from official packaging runs. Filenames _inside_ those zips still get `-run{N}` on Build Binaries (see below).
 
-Local `node scripts/build-reticulum-sidecar-release.mjs --platform win32|linux|darwin` still runs host tests and builds both architectures. `--arch x64|arm64` selects one target; CI uses `--skip-tests` only for the cross-build whose host tests run in the native job. Parallel jobs reduce elapsed build time but need more concurrent runners; queue delays can reduce the gain.
+Local `node scripts/build-ble-sidecar-release.mjs --platform win32|linux|darwin` still runs host tests and builds both architectures. `--arch x64|arm64` selects one target; CI uses `--skip-tests` only for the cross-build whose host tests run in the native job. Parallel jobs reduce elapsed build time but need more concurrent runners; queue delays can reduce the gain.
 
-Packaging sidecars cache Cargo dependencies with `Swatinem/rust-cache`, separately by target triple, runner OS/architecture, and Rust toolchain. The packaging key is separate from validation jobs. The sidecar workspace crate and Cargo-installed tools are excluded. Every run still clones the current Ratspeak sources, applies overlays, runs the native host tests, and builds/stages the selected target; a cache hit never skips those steps. Missing caches fall back to a normal build.
+Packaging sidecars cache Cargo dependencies with `Swatinem/rust-cache`, separately by target triple, runner OS/architecture, and Rust toolchain. The packaging key is separate from validation jobs. The sidecar workspace crate and Cargo-installed tools are excluded.Every run still runs the native host tests, and builds/stages the selected target; a cache hit never skips those steps. Missing caches fall back to a normal build.
 
 To test sidecar staging or compare cold and warm cache timings without building installers or publishing a release, run **Packaging sidecars** manually and select `all`, `mac`, `linux`, or `win`. It uses the same jobs as Build Binaries and Release and uploads only the staged sidecar artifacts.
 
@@ -487,11 +464,11 @@ On first launch after a schema bump against an existing database, the app shows 
 
 Linux arm64 cross-builds on Ubuntu 24.04 runners use `scripts/ci-setup-linux-arm64-apt.sh` before `dpkg --add-architecture arm64`. The script pins `Architectures: amd64` only on deb822 stanzas in `ubuntu.sources` that lack an `Architectures` field, writes arm64 ports mirrors as deb822 `arm64.sources` (not legacy `.list`), and is idempotent across workflow re-runs.
 
-Reticulum sidecar staging before `electron-builder`:
+Bluetooth helper staging before `electron-builder`:
 
-- `scripts/build-reticulum-sidecar-release.mjs` — compile/copy sidecar per target OS/arch
-- `scripts/verify-reticulum-sidecar-staged.mjs` — size/assert checks
-- `scripts/electron-builder-before-pack.mjs` — copy into `resources/reticulum-sidecar/`
+- `scripts/build-ble-sidecar-release.mjs` — compile/copy sidecar per target OS/arch
+- `scripts/verify-ble-sidecar-staged.mjs` — size/assert checks
+- `scripts/electron-builder-before-pack.mjs` — copy into `resources/ble-sidecar/`
 
 Post-build smoke tests:
 
@@ -504,12 +481,12 @@ Post-build smoke tests:
   - **Electron Framework symlinks** (`Versions/Current`, root `Electron Framework`) remain symlinks — `upload-artifact` dereferences them and breaks the bundle (~3× framework bloat)
   - **Squirrel / Mantle / ReactiveObjC** framework symlinks and binaries (7-Zip flattening breaks Squirrel at launch)
   - Staged **`00-READ-ME-BEFORE-EXTRACTING-macOS-ZIP.txt`** uploaded beside macOS ZIP/DMG on GitHub Releases
-  - Thin **MacOS launcher** + full **Electron Framework** binary sizes; bundled **Reticulum sidecar** present
-  - **Developer ID–signed builds only:** `codesign --verify --deep --strict` on the finished `.app` (DMG mount / ZIP extract / on-disk), `xcrun stapler validate` (stapled notarization ticket), and `codesign --verify --strict` on the bundled Reticulum sidecar. Unsigned or ad-hoc (non–Developer ID) local `dist:mac` builds skip this gate.
+  - Thin **MacOS launcher** + full **Electron Framework** binary sizes; bundled **Bluetooth helper** present
+  - **Developer ID–signed builds only:** `codesign --verify --deep --strict` on the finished `.app` (DMG mount / ZIP extract / on-disk), `xcrun stapler validate` (stapled notarization ticket), and `codesign --verify --strict` on the bundled Bluetooth helper. Unsigned or ad-hoc (non–Developer ID) local `dist:mac` builds skip this gate.
   - CI uploads **DMG/ZIP only** — never raw `Mesh-client.app` (see comment in `release.yaml` **Upload macOS Artifact**)
   - Optional signing env (`CSC_LINK`, `CSC_KEY_PASSWORD`, `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID`, `CSC_IDENTITY_AUTO_DISCOVERY`) is passed through from workflow secrets on `macos-latest`; layout checks do not require them, but signed CI builds must pass the codesign/stapler gate above
-- `scripts/test-linux-appimage-reticulum-sidecar.mjs` — x64 uses `--appimage-extract`; arm64 on x64 runners uses `unsquashfs` for cross-arch extract
+- `scripts/test-linux-appimage-ble-sidecar.mjs` — x64 uses `--appimage-extract`; arm64 on x64 runners uses `unsquashfs` for cross-arch extract
 - **`scripts/test-linux-appimage-launch.mjs`** — headless launch smoke that proves the packaged Linux AppImage actually **boots and loads the renderer**, not just that its files are well-formed or that the main process wrote a log line. Runs under `xvfb-run` in the `packaging-smoke` Linux leg (`build.yaml` / `release.yaml`), with a 5-minute step timeout. Extracts the AppImage (the file listing is kept out of the CI log unless extraction fails), launches its `AppRun` with `MESH_CLIENT_DISABLE_GPU=1`, `--no-sandbox --disable-setuid-sandbox`, and a throwaway `--user-data-dir`, then asserts the process stays alive past a startup threshold with no crash exit, that `mesh-client.log` contains a renderer-loaded signal (`[Startup] renderer URL:` or a `[renderer` line), and that the log and captured stderr have no renderer-gone, failed-load, or child-process-gone lines (those paths block on an error dialog, so the process can stay alive). Only the **native-arch** AppImage is launched (a cross-arch runtime cannot execute on the runner; that image is still covered by the sidecar extract smoke above). If no AppImage matches the host architecture, the smoke exits non-zero. The step **gates** `build.yaml` and `release.yaml`. Requires `xvfb` + Electron runtime libs (`libnss3`, `libgtk-3-0t64`, `libgbm1`, `libasound2t64`, …), installed by `scripts/ci-install-linux-appimage-smoke-deps.sh` from the Linux smoke step in both workflows.
 - `scripts/test-win-nsis-install.mjs` — NSIS + 7z sidecar probe on WoA
 
-Local packaging parity: see [development-environment.md](development-environment.md#reticulum-sidecar-optional).
+Local packaging parity: see [development-environment.md](development-environment.md#5-building-a-distributable).

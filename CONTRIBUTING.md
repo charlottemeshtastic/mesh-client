@@ -1,4 +1,4 @@
-# Contributing to Mesh Client
+# Contributing to Mesh Hub
 
 Thank you for your interest in contributing.
 
@@ -23,14 +23,14 @@ Thank you for your interest in contributing.
 See [Test harness setup and local quality checks](docs/development-environment.md#4-test-harness-setup-and-local-quality-checks) for Vitest projects, pre-PR commands, and browser dev stub behavior.
 
 - Renderer: jsdom (`src/renderer/**/*.test.{ts,tsx}`). Main (node project): `src/main/**/*.test.ts`, plus `src/shared/**`, `src/preload/**`, `src/architecture/**`, `scripts/**/*.test.mjs`, and `vitest.harness.test.ts` (see `vitest.config.mts`).
-- **Reticulum sidecar (Rust):** when editing `reticulum-sidecar/**`, run `pnpm run reticulum:sidecar:clippy:full` before PR; CI enforces line coverage in `tests.yaml` when sidecar paths change (see [docs/development-environment.md](docs/development-environment.md#lint-and-coverage-sidecar)).
+- **Bluetooth helper (Rust):** when editing `ble-sidecar/**`, run `pnpm run ble:sidecar:clippy` and `pnpm run ble:sidecar:test` before PR; CI enforces line coverage in `tests.yaml` when sidecar paths change (see [docs/ci-cd.md](docs/ci-cd.md)).
 - Mock console before spying logged errors (e.g. `vi.spyOn(console, 'warn').mockImplementation(() => {})`; use `beforeEach` when shared).
 - Update `src/main/index.contract.test.ts` when CSP, build config, IPC limits, or log filters change.
 - Accessibility: vitest-axe in component tests; see **Accessibility / axe** in [AGENTS.md](AGENTS.md#5-testing).
 
 ## Protocol scope
 
-Mesh-Client focuses on **RF mesh** networking (LoRa and related radio meshes). Additional protocols are in scope when they support that kind of RF mesh path. Internet-only messaging is out of scope. Ham protocols are welcome under the same RF-mesh criteria; Mesh-Client is for everyone, everywhere, and is not gated or targeted specifically at people with a ham radio license. Protocols that already ship may still use internet transports _alongside_ RF. Product framing: [README — Why](README.md#why).
+Mesh Hub focuses on **RF mesh** networking (LoRa and related radio meshes). Additional protocols are in scope when they support that kind of RF mesh path. Internet-only messaging is out of scope. Ham protocols are welcome under the same RF-mesh criteria; Mesh Hub is for everyone, everywhere, and is not gated or targeted specifically at people with a ham radio license. Protocols that already ship may still use internet transports _alongside_ RF. Product framing: [README — Why](README.md#why).
 
 ## PR process
 

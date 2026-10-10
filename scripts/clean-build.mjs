@@ -3,7 +3,7 @@
  * Cross-platform build-artifact cleanup (linux / darwin / win32).
  *
  * `pnpm run clean:build`      — shallow: remove build dists, test output, and caches.
- * `pnpm run clean:build:full` — full: also remove node_modules + Reticulum sidecar build
+ * `pnpm run clean:build:full` — full: also remove node_modules + Bluetooth helper build
  *                               output, then reinstall dependencies and rebuild the sidecar
  *                               so the developer environment is left in a working state.
  *
