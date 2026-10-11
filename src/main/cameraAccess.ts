@@ -29,5 +29,5 @@ export type CameraAccessDeps = Omit<
  * Branches only at the OS API boundary; Chromium session `media` is granted separately.
  */
 export async function ensureCameraAccess(deps: CameraAccessDeps): Promise<CameraAccessResult> {
-  return ensureMediaAccess('camera', deps as MediaAccessDeps);
+  return ensureMediaAccess('camera', deps);
 }
