@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * CI smoke test: silent NSIS install and assert Mesh-client.exe lands on disk.
+ * CI smoke test: silent NSIS install and assert the app exe lands on disk.
  *
  * Failure point: NSIS can report success while dropping the main exe on WoA.
  * Fallback: exit non-zero with install log path so CI uploads diagnostics.
@@ -25,12 +25,13 @@ import { fileURLToPath } from 'url';
 import { findAppArchive } from './find-nsis-app-archive.mjs';
 import { assertBundledBleSidecarInBundle } from './assert-bundled-ble-sidecar.mjs';
 import { findWinSetupInstaller } from './win-setup-installer-names.mjs';
+import { PRODUCT_NAME } from './productNames.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const releaseDir = path.join(projectRoot, 'release');
 
-const APP_EXE = 'Mesh-client.exe';
+const APP_EXE = `${PRODUCT_NAME}.exe`;
 const MIN_EXE_BYTES = 50 * 1024 * 1024;
 
 /** @param {string} msg */
@@ -181,7 +182,7 @@ function main(arch, probe7z) {
   if (!localAppData) {
     fail('LOCALAPPDATA is not set');
   }
-  const instDir = path.join(localAppData, 'Programs', 'Mesh-client');
+  const instDir = path.join(localAppData, 'Programs', PRODUCT_NAME);
   const workDir = mkdtempSync(path.join(tmpdir(), 'mesh-client-install-'));
   try {
     const logPath = path.join(workDir, `mesh-client-install-${arch}.log`);

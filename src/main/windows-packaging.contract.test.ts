@@ -100,7 +100,7 @@ describe('Windows packaging (contract)', () => {
     expect(yml).toContain('normalize-win-setup-artifact-names.mjs');
 
     const installerNsh = readFileSync(join(REPO_ROOT, 'resources', 'installer.nsh'), 'utf-8');
-    expect(installerNsh).toContain('Mesh-client.exe');
+    expect(installerNsh).toContain('Mesh Hub.exe');
     expect(installerNsh).toContain('customInstall');
 
     const verifyScript = readFileSync(
@@ -121,7 +121,7 @@ describe('Windows packaging (contract)', () => {
       'utf-8',
     );
     expect(setupNamesScript).toContain('-arm64.exe');
-    expect(setupNamesScript).toContain('Mesh-client-Setup-');
+    expect(setupNamesScript).toContain('${PRODUCT_FILE_NAME}-Setup-');
     expect(setupNamesScript).toContain('^-run\\d+-arm64$');
   });
 
@@ -316,7 +316,7 @@ describe('Windows packaging (contract)', () => {
     expect(macVerify).toContain('.app');
     expect(macVerify).toContain("'Contents', 'MacOS'");
     expect(macVerify).toContain('Electron Framework.framework');
-    expect(macVerify).toContain('Mesh-client');
+    expect(macVerify).toContain('const APP_NAME = PRODUCT_NAME;');
     expect(macVerify).toContain('ditto -xk');
     expect(macVerify).toContain('hdiutil attach');
     expect(macVerify).toContain('isSymbolicLink');
@@ -435,7 +435,7 @@ describe('Windows packaging (contract)', () => {
       expect(workflow).toContain('release/latest-linux-arm64.yml');
       expect(workflow).toContain('release/latest.yml');
       expect(workflow).toContain('uses: ./.github/actions/download-packaging-sidecars');
-      expect(workflow).not.toContain('release/mac*/**/Mesh-client.app/**');
+      expect(workflow).not.toContain('release/mac*/**/Mesh Hub.app/**');
       expect(workflow).toMatch(/upload-artifact@v7[\s\S]*?symlinks/);
     }
   });

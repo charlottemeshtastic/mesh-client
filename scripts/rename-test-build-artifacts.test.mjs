@@ -41,11 +41,11 @@ describe('buildRunStampSuffix', () => {
 
 describe('stampedInstallerName', () => {
   it('stamps AppImage x64 and arm64', () => {
-    expect(stampedInstallerName('Mesh-client-5.26.0.AppImage', 214)).toBe(
-      'Mesh-client-5.26.0-run214.AppImage',
+    expect(stampedInstallerName('Mesh-Hub-5.26.0.AppImage', 214)).toBe(
+      'Mesh-Hub-5.26.0-run214.AppImage',
     );
-    expect(stampedInstallerName('Mesh-client-5.26.0-arm64.AppImage', 214)).toBe(
-      'Mesh-client-5.26.0-run214-arm64.AppImage',
+    expect(stampedInstallerName('Mesh-Hub-5.26.0-arm64.AppImage', 214)).toBe(
+      'Mesh-Hub-5.26.0-run214-arm64.AppImage',
     );
   });
 
@@ -59,17 +59,17 @@ describe('stampedInstallerName', () => {
   });
 
   it('stamps Windows Setup installers', () => {
-    expect(stampedInstallerName('Mesh-client Setup 5.26.0.exe', 214)).toBe(
-      'Mesh-client Setup 5.26.0-run214.exe',
+    expect(stampedInstallerName('Mesh Hub Setup 5.26.0.exe', 214)).toBe(
+      'Mesh Hub Setup 5.26.0-run214.exe',
     );
-    expect(stampedInstallerName('Mesh-client Setup 5.26.0-arm64.exe', 214)).toBe(
-      'Mesh-client Setup 5.26.0-run214-arm64.exe',
+    expect(stampedInstallerName('Mesh Hub Setup 5.26.0-arm64.exe', 214)).toBe(
+      'Mesh Hub Setup 5.26.0-run214-arm64.exe',
     );
-    expect(stampedInstallerName('Mesh-client-Setup-5.26.0.exe', 214)).toBe(
-      'Mesh-client-Setup-5.26.0-run214.exe',
+    expect(stampedInstallerName('Mesh-Hub-Setup-5.26.0.exe', 214)).toBe(
+      'Mesh-Hub-Setup-5.26.0-run214.exe',
     );
-    expect(stampedInstallerName('Mesh-client-Setup-5.26.0-arm64.exe', 214)).toBe(
-      'Mesh-client-Setup-5.26.0-run214-arm64.exe',
+    expect(stampedInstallerName('Mesh-Hub-Setup-5.26.0-arm64.exe', 214)).toBe(
+      'Mesh-Hub-Setup-5.26.0-run214-arm64.exe',
     );
   });
 
@@ -86,13 +86,13 @@ describe('stampedInstallerName', () => {
 
 describe('shouldRenameInstaller', () => {
   it('accepts installers and skips non-installers', () => {
-    expect(shouldRenameInstaller('Mesh-client-5.26.0.AppImage')).toBe(true);
-    expect(shouldRenameInstaller('Mesh-client Setup 5.26.0.exe')).toBe(true);
-    expect(shouldRenameInstaller('Mesh-client-Setup-5.26.0.exe')).toBe(true);
+    expect(shouldRenameInstaller('Mesh-Hub-5.26.0.AppImage')).toBe(true);
+    expect(shouldRenameInstaller('Mesh Hub Setup 5.26.0.exe')).toBe(true);
+    expect(shouldRenameInstaller('Mesh-Hub-Setup-5.26.0.exe')).toBe(true);
     expect(shouldRenameInstaller('io.github.charlottemeshtastic.MeshHub.flatpak')).toBe(true);
     expect(shouldRenameInstaller('READ-ME-FIRST-test-build.md')).toBe(false);
-    expect(shouldRenameInstaller('Mesh-client.exe')).toBe(false);
-    expect(shouldRenameInstaller('Mesh-client-5.26.0.AppImage.blockmap')).toBe(false);
+    expect(shouldRenameInstaller('Mesh Hub.exe')).toBe(false);
+    expect(shouldRenameInstaller('Mesh-Hub-5.26.0.AppImage.blockmap')).toBe(false);
   });
 });
 
@@ -141,14 +141,14 @@ describe('renameTestBuildArtifacts', () => {
     const root = makeTempDir();
     const mac = path.join(root, 'mac');
     fs.mkdirSync(mac, { recursive: true });
-    fs.writeFileSync(path.join(root, 'Mesh-client-5.26.0.AppImage'), 'x');
-    fs.writeFileSync(path.join(root, 'Mesh-client-5.26.0-arm64.AppImage'), 'x');
+    fs.writeFileSync(path.join(root, 'Mesh-Hub-5.26.0.AppImage'), 'x');
+    fs.writeFileSync(path.join(root, 'Mesh-Hub-5.26.0-arm64.AppImage'), 'x');
     fs.writeFileSync(path.join(root, 'mesh-client_5.26.0_amd64.deb'), 'x');
-    fs.writeFileSync(path.join(root, 'Mesh-client-Setup-5.26.0.exe'), 'x');
-    fs.writeFileSync(path.join(root, 'Mesh-client-Setup-5.26.0-arm64.exe'), 'x');
-    fs.writeFileSync(path.join(mac, 'Mesh-client-5.26.0.dmg'), 'x');
+    fs.writeFileSync(path.join(root, 'Mesh-Hub-Setup-5.26.0.exe'), 'x');
+    fs.writeFileSync(path.join(root, 'Mesh-Hub-Setup-5.26.0-arm64.exe'), 'x');
+    fs.writeFileSync(path.join(mac, 'Mesh-Hub-5.26.0.dmg'), 'x');
     fs.writeFileSync(path.join(root, 'READ-ME-FIRST-test-build.md'), 'note');
-    fs.writeFileSync(path.join(root, 'Mesh-client.exe'), 'exe');
+    fs.writeFileSync(path.join(root, 'Mesh Hub.exe'), 'exe');
 
     const result = renameTestBuildArtifacts({
       rootDir: root,
@@ -157,12 +157,12 @@ describe('renameTestBuildArtifacts', () => {
     });
     expect(result.skipped).toBe(false);
     expect(result.renamed).toHaveLength(6);
-    expect(fs.existsSync(path.join(root, 'Mesh-client-5.26.0-run214.AppImage'))).toBe(true);
-    expect(fs.existsSync(path.join(root, 'Mesh-client-5.26.0-run214-arm64.AppImage'))).toBe(true);
-    expect(fs.existsSync(path.join(root, 'Mesh-client-Setup-5.26.0-run214.exe'))).toBe(true);
-    expect(fs.existsSync(path.join(mac, 'Mesh-client-5.26.0-run214.dmg'))).toBe(true);
+    expect(fs.existsSync(path.join(root, 'Mesh-Hub-5.26.0-run214.AppImage'))).toBe(true);
+    expect(fs.existsSync(path.join(root, 'Mesh-Hub-5.26.0-run214-arm64.AppImage'))).toBe(true);
+    expect(fs.existsSync(path.join(root, 'Mesh-Hub-Setup-5.26.0-run214.exe'))).toBe(true);
+    expect(fs.existsSync(path.join(mac, 'Mesh-Hub-5.26.0-run214.dmg'))).toBe(true);
     expect(fs.existsSync(path.join(root, 'READ-ME-FIRST-test-build.md'))).toBe(true);
-    expect(fs.existsSync(path.join(root, 'Mesh-client.exe'))).toBe(true);
+    expect(fs.existsSync(path.join(root, 'Mesh Hub.exe'))).toBe(true);
 
     const again = renameTestBuildArtifacts({
       rootDir: root,
@@ -174,13 +174,13 @@ describe('renameTestBuildArtifacts', () => {
 
   it('skips when channel is not test', () => {
     const root = makeTempDir();
-    fs.writeFileSync(path.join(root, 'Mesh-client-5.26.0.AppImage'), 'x');
+    fs.writeFileSync(path.join(root, 'Mesh-Hub-5.26.0.AppImage'), 'x');
     const result = renameTestBuildArtifacts({
       rootDir: root,
       buildInfoRaw: JSON.stringify({ channel: 'release', runNumber: 9 }),
     });
     expect(result).toMatchObject({ skipped: true, reason: 'channel-not-test' });
-    expect(fs.existsSync(path.join(root, 'Mesh-client-5.26.0.AppImage'))).toBe(true);
+    expect(fs.existsSync(path.join(root, 'Mesh-Hub-5.26.0.AppImage'))).toBe(true);
   });
 
   it('lists only installer files', () => {

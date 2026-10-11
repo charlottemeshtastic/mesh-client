@@ -184,7 +184,7 @@ jobs:
           mkdir -p release
           cp release-warnings/READ-ME-FIRST-test-build.md release/READ-ME-FIRST-test-build.md
 
-      # Do not upload raw Mesh-client.app — upload-artifact@v7 dereferences framework
+      # Do not upload raw Mesh Hub.app — upload-artifact@v7 dereferences framework
       # symlinks (~3× Electron Framework size). DMG/ZIP preserve correct layout.
       - name: Upload macOS Artifact
         if: matrix.os == 'macos-latest'

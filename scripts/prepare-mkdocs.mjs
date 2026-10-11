@@ -132,7 +132,7 @@ export function buildFeaturesPage(readme) {
   return buildPage({
     title: 'Features',
     intro:
-      'What Mesh-Client does on each protocol. New to the terms? See the [Glossary](docs/glossary.md).',
+      'What Mesh Hub does on each protocol. New to the terms? See the [Glossary](docs/glossary.md).',
     body: `${features}\n\n## Limitations\n\n${limitations}`,
     sourceFile: 'README.md',
   });

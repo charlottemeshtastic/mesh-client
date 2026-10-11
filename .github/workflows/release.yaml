@@ -276,7 +276,7 @@ jobs:
           # shellcheck disable=SC2086
           node scripts/ci-upload-release-assets.mjs $UPLOAD_GLOBS
 
-      # Do not upload raw Mesh-client.app — upload-artifact@v7 dereferences framework
+      # Do not upload raw Mesh Hub.app — upload-artifact@v7 dereferences framework
       # symlinks (~3× Electron Framework size). DMG/ZIP preserve correct layout.
       - name: Upload macOS Artifact
         if: matrix.os == 'macos-latest'
@@ -320,7 +320,7 @@ jobs:
         with:
           name: mesh-client-windows-${{ github.sha }}
           path: |
-            # Per-arch NSIS installers: Mesh-client-Setup-{version}.exe + {version}-arm64.exe
+            # Per-arch NSIS installers: Mesh-Hub-Setup-{version}.exe + {version}-arm64.exe
             release/*.exe
             release/latest.yml
             release/win-unpacked/**/*

@@ -93,7 +93,7 @@ const win = {
 } as unknown as BrowserWindow;
 
 const trustedEvent = {
-  senderFrame: { url: 'file:///Applications/Mesh-client.app/Contents/Resources/app.asar/x.html' },
+  senderFrame: { url: 'file:///Applications/Mesh Hub.app/Contents/Resources/app.asar/x.html' },
 } as unknown as IpcMainInvokeEvent;
 
 const untrustedEvent = {
@@ -286,13 +286,13 @@ describe('updater behavior (electron-updater path)', () => {
         harness.autoUpdater.checkForUpdates.mockResolvedValueOnce({
           // Reject after a tick so doCheck() can attach its catch first.
           downloadPromise: Promise.resolve().then(() => {
-            throw new Error('Cannot download Mesh-client-Setup-5.36.0.exe status:404\ninjected');
+            throw new Error('Cannot download Mesh-Hub-Setup-5.36.0.exe status:404\ninjected');
           }),
         });
         await handler('update:check')(trustedEvent);
         await flushMicrotasks();
         expect(harness.send).toHaveBeenCalledWith('update:error', {
-          message: 'Cannot download Mesh-client-Setup-5.36.0.exe status:404 injected',
+          message: 'Cannot download Mesh-Hub-Setup-5.36.0.exe status:404 injected',
         });
         expect(unhandled).toEqual([]);
       } finally {
@@ -306,7 +306,7 @@ describe('updater behavior (electron-updater path)', () => {
     async (platform) => {
       setup(platform);
       harness.autoUpdater.checkForUpdates.mockResolvedValueOnce({
-        downloadPromise: Promise.resolve(['Mesh-client-Setup-9.9.9.exe']),
+        downloadPromise: Promise.resolve(['Mesh-Hub-Setup-9.9.9.exe']),
       });
       await handler('update:check')(trustedEvent);
       emitUpdaterEvent('update-downloaded');

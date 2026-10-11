@@ -8,9 +8,9 @@
 !include "${BUILD_RESOURCES_DIR}\schema-upgrade-notice.nsh"
 
 !macro customInstall
-  IfFileExists "$INSTDIR\Mesh-client.exe" finish_ok 0
+  IfFileExists "$INSTDIR\Mesh Hub.exe" finish_ok 0
     SetErrorLevel 2
-    MessageBox MB_ICONSTOP|MB_OK "Installation incomplete: Mesh-client.exe is missing from $INSTDIR.$\r$\nPlease report this at github.com/Colorado-Mesh/mesh-client/issues." /SD IDOK
+    MessageBox MB_ICONSTOP|MB_OK "Installation incomplete: Mesh Hub.exe is missing from $INSTDIR.$\r$\nPlease report this at github.com/charlottemeshtastic/mesh-client/issues." /SD IDOK
     Abort
   finish_ok:
   !ifdef MESH_CLIENT_SCHEMA_UPGRADE_NOTICE
