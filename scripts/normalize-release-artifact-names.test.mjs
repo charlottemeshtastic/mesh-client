@@ -7,7 +7,7 @@ import {
   hyphenatedArtifactName,
   normalizeReleaseArtifactNames,
 } from './normalize-release-artifact-names.mjs';
-import { PRODUCT_FILE_NAME, PRODUCT_NAME } from './productNames.mjs';
+import { PRODUCT_FILE_NAME, PRODUCT_NAME, WIN_PER_USER_INSTALL_DIR_NAME } from './productNames.mjs';
 
 const tempDirs = [];
 afterEach(() => {
@@ -18,6 +18,7 @@ describe('productNames', () => {
   it('derives the hyphenated file name from package.json productName', () => {
     expect(PRODUCT_NAME).toBe('Mesh Hub');
     expect(PRODUCT_FILE_NAME).toBe('Mesh-Hub');
+    expect(WIN_PER_USER_INSTALL_DIR_NAME).toBe('mesh-hub');
   });
 });
 

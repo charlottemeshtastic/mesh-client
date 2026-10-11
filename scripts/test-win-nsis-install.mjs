@@ -25,7 +25,7 @@ import { fileURLToPath } from 'url';
 import { findAppArchive } from './find-nsis-app-archive.mjs';
 import { assertBundledBleSidecarInBundle } from './assert-bundled-ble-sidecar.mjs';
 import { findWinSetupInstaller } from './win-setup-installer-names.mjs';
-import { PRODUCT_NAME } from './productNames.mjs';
+import { PRODUCT_NAME, WIN_PER_USER_INSTALL_DIR_NAME } from './productNames.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
@@ -182,7 +182,7 @@ function main(arch, probe7z) {
   if (!localAppData) {
     fail('LOCALAPPDATA is not set');
   }
-  const instDir = path.join(localAppData, 'Programs', PRODUCT_NAME);
+  const instDir = path.join(localAppData, 'Programs', WIN_PER_USER_INSTALL_DIR_NAME);
   const workDir = mkdtempSync(path.join(tmpdir(), 'mesh-client-install-'));
   try {
     const logPath = path.join(workDir, `mesh-client-install-${arch}.log`);

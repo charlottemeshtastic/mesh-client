@@ -12,6 +12,11 @@ import { readFileSync } from 'node:fs';
 const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 
 export const PRODUCT_NAME = String(pkg.productName);
+/**
+ * Per-user NSIS install folder under %LOCALAPPDATA%\\Programs. One-click, per-user installers
+ * use electron-builder's sanitized package `name` (e.g. `mesh-hub`), not the product name.
+ */
+export const WIN_PER_USER_INSTALL_DIR_NAME = String(pkg.name);
 export const PRODUCT_FILE_NAME = PRODUCT_NAME.replace(/ /g, '-');
 /** GitHub's rewrite of PRODUCT_NAME in uploaded asset names (spaces become dots). */
 export const PRODUCT_GITHUB_NAME = PRODUCT_NAME.replace(/ /g, '.');
