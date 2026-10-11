@@ -949,9 +949,8 @@ export interface ElectronAPI {
   getPlatform: () => string;
   showEmojiPanel: () => Promise<void>;
 
-  // ─── Microphone / camera (OS privacy + Chromium media) ───────────────────────
+  // ─── Camera (OS privacy + Chromium media) ────────────────────────────────────
   media: {
-    ensureMicrophoneAccess: () => Promise<{ granted: boolean; status: string }>;
     ensureCameraAccess: () => Promise<{ granted: boolean; status: string }>;
   };
 

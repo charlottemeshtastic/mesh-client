@@ -1,16 +1,12 @@
-/** Shared OS media-permission helpers for camera and microphone. */
+/** Shared OS media-permission helpers (camera, used for QR scanning). */
 
-export type MediaAccessType = 'camera' | 'microphone';
+export type MediaAccessType = 'camera';
 
 /** Fixed OS privacy deep links — never open user-controlled URLs. */
 export const MEDIA_PRIVACY_SETTINGS_URL = {
   camera: {
     darwin: 'x-apple.systempreferences:com.apple.preference.security?Privacy_Camera',
     win32: 'ms-settings:privacy-webcam',
-  },
-  microphone: {
-    darwin: 'x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone',
-    win32: 'ms-settings:privacy-microphone',
   },
 } as const;
 
@@ -40,7 +36,7 @@ export async function ensureMediaAccess(
   deps: MediaAccessDeps,
 ): Promise<MediaAccessResult> {
   const { platform } = deps;
-  const logTag = mediaType === 'camera' ? '[cameraAccess]' : '[microphoneAccess]';
+  const logTag = '[cameraAccess]';
   const privacyUrls = MEDIA_PRIVACY_SETTINGS_URL[mediaType];
 
   if (platform === 'linux') {

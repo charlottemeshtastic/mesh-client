@@ -345,6 +345,8 @@ MeshCore runs simultaneously alongside Meshtastic. Use the protocol switcher at 
 - TCP: connects to MeshCore companion radio; default port **5000**, configurable per connection
 - **MQTT (JSON v1):** The Connection tab MQTT card includes a **Network Preset** picker (order: **LetsMesh**, **MeshMapper**, **Colorado Mesh**, **Waev**, **Meshat.se**, **MeshCore.CA**, **EastMesh**, **Ripple Networks**, **Custom**). New installs default to **LetsMesh** (WebSocket on port 443, topic prefix `meshcore/test`; broker auth uses `@michaelhart/meshcore-decoder`'s `createAuthToken`; MQTT username `v1_<64-hex public key>`, password token with JWT `aud` matching the **MQTT server hostname**; optional **Packet logger** forwards RX packet summaries to the broker when enabled; see [docs/letsmesh-mqtt-auth.md](docs/letsmesh-mqtt-auth.md)). **LetsMesh**, **MeshMapper**, **Waev**, **Meshat.se**, **MeshCore.CA**, and **EastMesh** share that device-signing JWT flow (WebSocket path `/ws` for LetsMesh/MeshMapper, `/mqtt` for Waev/Meshat.se/MeshCore.CA/EastMesh; **MeshCore.CA** adds a Primary/Backup broker toggle). **Colorado Mesh** is regional (Colorado residents only; WebSocket on port 443, topic prefix `meshcore/DEN`; confirm dialog on select; existing Colorado users get a one-time stay-or-switch prompt). IATA-scoped brokers require topic `meshcore/{IATA}` or `meshcore/test`. **Ripple Networks** (TLS on port 8883, topic prefix `meshcore`, shared credentials, insecure TLS confirm) and **Custom** remain available for other brokers.
 
+<!-- docs-site:features:end -->
+
 ---
 
 ## Limitations

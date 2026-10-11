@@ -181,7 +181,6 @@ import {
   meshtasticNodePublicKeyHexOrNull,
   migrateMeshtasticNodeNumInDb,
 } from './meshtasticNodeRenumber';
-import { ensureMicrophoneAccess, isAllowedMicrophonePrivacySettingsUrl } from './microphoneAccess';
 import { resolveMqttBrokerClientId } from './mqtt-broker-client-id';
 import { type CachedNode, MQTTManager, parsePsk } from './mqtt-manager';
 import { createMeshTilesProtocolHandler } from './offline-maps/protocol';
@@ -1972,7 +1971,7 @@ function createWindow() {
   });
 
   const permissionLog = new PermissionDecisionLogger();
-  // Allow serial, geolocation, and media (camera / future live audio). Deny web-app-installation etc.
+  // Allow serial, geolocation, and media (camera for QR scanning). Deny web-app-installation etc.
   mainWindow.webContents.session.setPermissionCheckHandler((_webContents, permission) => {
     const granted =
       permission === 'serial' ||
@@ -1983,7 +1982,7 @@ function createWindow() {
     return granted;
   });
 
-  // Grant geolocation (browser GPS fallback), media (camera QR; microphone reserved for future LXST)
+  // Grant geolocation (browser GPS fallback), media (camera for QR scanning)
   // and notifications (renderer `new Notification` for chat / node / ops / MECP alerts).
   mainWindow.webContents.session.setPermissionRequestHandler(
     (_webContents, permission, callback) => {
@@ -3927,30 +3926,6 @@ ipcMain.handle('clipboard:writeText', async (event, text: unknown) => {
       sanitizeLogMessage(e instanceof Error ? e.message : String(e)),
     );
     throw e;
-  }
-});
-
-ipcMain.handle('media:ensureMicrophoneAccess', async (event) => {
-  assertIpcSender(event, 'media:ensureMicrophoneAccess');
-  try {
-    return await ensureMicrophoneAccess({
-      platform: process.platform,
-      getMediaAccessStatus: (mediaType) => systemPreferences.getMediaAccessStatus(mediaType),
-      askForMediaAccess: (mediaType) => systemPreferences.askForMediaAccess(mediaType),
-      openExternal: (url) => {
-        const validateUrl = isAllowedMicrophonePrivacySettingsUrl;
-        if (!validateUrl(url)) {
-          return Promise.reject(new Error('Blocked unexpected microphone privacy settings URL'));
-        }
-        return shell.openExternal(url);
-      },
-    });
-  } catch (e) {
-    console.warn(
-      '[IPC] media:ensureMicrophoneAccess failed:',
-      sanitizeLogMessage(e instanceof Error ? e.message : String(e)),
-    );
-    return { granted: false, status: 'denied' };
   }
 });
 

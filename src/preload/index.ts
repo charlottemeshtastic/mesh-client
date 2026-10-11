@@ -943,10 +943,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getPlatform: () => process.platform,
   showEmojiPanel: () => ipcRenderer.invoke('app:showEmojiPanel'),
 
-  // ─── Microphone / camera ─────────────────────────────────────────────────────
+  // ─── Camera ──────────────────────────────────────────────────────────────────
   media: {
-    ensureMicrophoneAccess: (): Promise<{ granted: boolean; status: string }> =>
-      ipcRenderer.invoke('media:ensureMicrophoneAccess'),
     ensureCameraAccess: (): Promise<{ granted: boolean; status: string }> =>
       ipcRenderer.invoke('media:ensureCameraAccess'),
   },
