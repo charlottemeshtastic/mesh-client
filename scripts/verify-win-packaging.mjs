@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Post-dist:win guard — fail CI if Windows packaging omits Mesh-client.exe or ships a
+ * Post-dist:win guard — fail CI if Windows packaging omits the app exe or ships a
  * universal NSIS installer instead of per-arch Setup exes.
  *
  * Failure point: electron-builder universal NSIS on Windows 11 ARM can extract support
@@ -13,13 +13,14 @@ import path from 'path';
 import { assertBundledBleSidecarInBundle } from './assert-bundled-ble-sidecar.mjs';
 import { assertUpdateYmlArtifacts } from './assert-update-yml-artifacts.mjs';
 import { collectWinSetupInstallers } from './win-setup-installer-names.mjs';
+import { PRODUCT_NAME } from './productNames.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const releaseDir = path.join(projectRoot, 'release');
 
 const MIN_EXE_BYTES = 50 * 1024 * 1024;
-const APP_EXE = 'Mesh-client.exe';
+const APP_EXE = `${PRODUCT_NAME}.exe`;
 
 /** @param {string} label @param {string} filePath */
 function assertExe(label, filePath) {
@@ -67,13 +68,13 @@ function main() {
   assertExe('x64 unpacked app', path.join(releaseDir, 'win-unpacked', APP_EXE));
   assertExe('arm64 unpacked app', path.join(releaseDir, 'win-arm64-unpacked', APP_EXE));
   assertBundledBleSidecarInBundle({
-    label: 'x64 bundled Reticulum sidecar',
+    label: 'x64 bundled Bluetooth helper',
     platform: 'win32',
     bundleRoot: path.join(releaseDir, 'win-unpacked'),
     fail,
   });
   assertBundledBleSidecarInBundle({
-    label: 'arm64 bundled Reticulum sidecar',
+    label: 'arm64 bundled Bluetooth helper',
     platform: 'win32',
     bundleRoot: path.join(releaseDir, 'win-arm64-unpacked'),
     fail,

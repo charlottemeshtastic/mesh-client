@@ -36,14 +36,14 @@ export function formatSchemaUpgradeNoticeText(opts) {
         ? `schema ${opts.prevSchema}`
         : 'the previous official release';
   return (
-    `Mesh-Client database schema upgrade\n` +
+    `Mesh Hub database schema upgrade\n` +
     `====================================\n\n` +
     `This build uses SQLite schema ${opts.currSchema}.\n` +
     `Last compared official release: ${prev}.\n\n` +
     `Launching this build against an existing database will upgrade it.\n` +
-    `You cannot downgrade to an older Mesh-Client that only supports the\n` +
+    `You cannot downgrade to an older Mesh Hub that only supports the\n` +
     `previous schema while keeping the same database.\n\n` +
-    `On first launch, Mesh-Client shows a Quit / Upgrade dialog before\n` +
+    `On first launch, Mesh Hub shows a Quit / Upgrade dialog before\n` +
     `changing the database. Choose Quit to exit without upgrading.\n`
   );
 }

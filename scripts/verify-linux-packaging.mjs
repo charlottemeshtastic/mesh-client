@@ -142,7 +142,7 @@ function main() {
       continue;
     }
     assertBundledBleSidecarInBundle({
-      label: `${label} bundled Reticulum sidecar`,
+      label: `${label} bundled Bluetooth helper`,
       platform: 'linux',
       bundleRoot,
       fail,

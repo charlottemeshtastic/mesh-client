@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Pre-dist smoke: assert all staged Reticulum sidecar binaries exist for a platform.
+ * Pre-dist smoke: assert all staged Bluetooth helper binaries exist for a platform.
  *
  * Run after scripts/build-ble-sidecar-release.mjs and before electron-builder.
  */

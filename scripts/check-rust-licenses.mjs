@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Gate Rust crate licenses for the Reticulum sidecar via `cargo metadata`.
+ * Gate Rust crate licenses for the Bluetooth helper via `cargo metadata`.
  *
  * Inventory: every package resolved by `ble-sidecar/Cargo.lock` with
  * `--locked --all-features`. `--all-features` is required: the Ratspeak stack

@@ -140,14 +140,14 @@ export const NATIVE_TARGETS = {
   'build-linux': [{ name: 'Linux dist', command: 'pnpm', args: ['run', 'dist:linux'] }],
   'ble-sidecar': [
     {
-      name: 'Reticulum sidecar tests (stub)',
+      name: 'Bluetooth helper tests (stub)',
       command: 'cargo',
       args: ['test'],
       shell: true,
       optionalTool: 'cargo',
     },
     {
-      name: 'Reticulum sidecar build (stub)',
+      name: 'Bluetooth helper build (stub)',
       command: 'cargo',
       args: ['build', '--release'],
       shell: true,
@@ -525,7 +525,7 @@ Targets:
   ci                 CI work jobs (quality, lint, typecheck, app-build, policy-scanners)
   tests              Tests workflow (coverage)
   build-linux        build.yaml ubuntu-latest leg (dist:linux)
-  ble-sidecar  Reticulum sidecar Linux jobs
+  ble-sidecar  Bluetooth helper Linux jobs
   flatpak            Flatpak x86_64 path (docker mode only)
   pull-images        docker pull act platform + Flatpak images (docker mode)
   list               List docker or native targets

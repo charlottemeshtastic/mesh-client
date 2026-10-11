@@ -1,19 +1,21 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { PRODUCT_FILE_NAME, PRODUCT_GITHUB_NAME, PRODUCT_NAME } from './productNames.mjs';
+
 /**
- * Match Mesh-client Windows NSIS Setup installer basenames.
+ * Match Windows NSIS Setup installer basenames for the packaged product (see productNames.mjs).
  *
  * Accepts default electron-builder names, hyphenated GitHub-safe names, and
  * test-build stamped names:
- *   Mesh-client Setup 5.26.0.exe
- *   Mesh-client-Setup-5.26.0.exe
- *   Mesh-client Setup 5.26.0-arm64.exe
- *   Mesh-client-Setup-5.26.0-arm64.exe
- *   Mesh-client Setup 5.26.0-run214.exe
- *   Mesh-client-Setup-5.26.0-run214.exe
- *   Mesh-client Setup 5.26.0-run214-arm64.exe
- *   Mesh-client-Setup-5.26.0-run214-arm64.exe
+ *   Mesh Hub Setup 5.26.0.exe
+ *   Mesh-Hub-Setup-5.26.0.exe
+ *   Mesh Hub Setup 5.26.0-arm64.exe
+ *   Mesh-Hub-Setup-5.26.0-arm64.exe
+ *   Mesh Hub Setup 5.26.0-run214.exe
+ *   Mesh-Hub-Setup-5.26.0-run214.exe
+ *   Mesh Hub Setup 5.26.0-run214-arm64.exe
+ *   Mesh-Hub-Setup-5.26.0-run214-arm64.exe
  */
 
 /**
@@ -21,7 +23,7 @@ import path from 'node:path';
  * @returns {string[]}
  */
 function winSetupPrefixes(version) {
-  return [`Mesh-client-Setup-${version}`, `Mesh-client Setup ${version}`];
+  return [`${PRODUCT_FILE_NAME}-Setup-${version}`, `${PRODUCT_NAME} Setup ${version}`];
 }
 
 /**
@@ -63,9 +65,11 @@ export function hyphenateWinSetupInstallerName(name) {
  */
 export function hyphenatedWinSetupNameFromGithubDotted(name) {
   if (typeof name !== 'string') return null;
-  const m = /^Mesh-client\.Setup\.(\d+\.\d+\.\d+)(-arm64|-x64)?\.exe$/.exec(name);
+  const prefix = `${PRODUCT_GITHUB_NAME}.Setup.`;
+  if (!name.startsWith(prefix)) return null;
+  const m = /^(\d+\.\d+\.\d+)(-arm64|-x64)?\.exe$/.exec(name.slice(prefix.length));
   if (!m) return null;
-  return `Mesh-client-Setup-${m[1]}${m[2] ?? ''}.exe`;
+  return `${PRODUCT_FILE_NAME}-Setup-${m[1]}${m[2] ?? ''}.exe`;
 }
 
 /**
@@ -126,7 +130,7 @@ export function normalizeWinSetupInstallerNames(rootDir, opts = {}) {
   const renamed = [];
   for (const name of names) {
     if (!name.includes(' ')) continue;
-    if (!name.startsWith('Mesh-client Setup ') || !name.endsWith('.exe')) continue;
+    if (!name.startsWith(`${PRODUCT_NAME} Setup `) || !name.endsWith('.exe')) continue;
     if (name.includes('__uninstaller')) continue;
     const next = hyphenateWinSetupInstallerName(name);
     if (next === name) continue;

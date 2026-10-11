@@ -1,5 +1,5 @@
 /**
- * Shared assertions for packaged Reticulum sidecar binaries in Electron bundles.
+ * Shared assertions for packaged Bluetooth helper binaries in Electron bundles.
  */
 import { existsSync, statSync } from 'fs';
 import path from 'path';

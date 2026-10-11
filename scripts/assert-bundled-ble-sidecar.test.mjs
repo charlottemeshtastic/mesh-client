@@ -10,8 +10,8 @@ describe('assert-bundled-ble-sidecar', () => {
     expect(resolveBundledSidecarPath('linux', '/app/linux-unpacked')).toBe(
       path.join('/app/linux-unpacked/resources/ble-sidecar/mesh-hub-ble'),
     );
-    expect(resolveBundledSidecarPath('darwin', '/app/Mesh-client.app')).toBe(
-      path.join('/app/Mesh-client.app/Contents/Resources/ble-sidecar/mesh-hub-ble'),
+    expect(resolveBundledSidecarPath('darwin', '/app/Mesh Hub.app')).toBe(
+      path.join('/app/Mesh Hub.app/Contents/Resources/ble-sidecar/mesh-hub-ble'),
     );
   });
 });

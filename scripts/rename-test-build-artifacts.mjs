@@ -10,6 +10,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { PRODUCT_FILE_NAME, PRODUCT_NAME } from './productNames.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -52,14 +53,16 @@ export function shouldRenameInstaller(name) {
   if (!name || name.startsWith('.')) return false;
   if (name.startsWith('READ-ME-FIRST')) return false;
   if (name.includes('blockmap') || name.endsWith('.blockmap')) return false;
-  if (name === 'Mesh-client.exe') return false;
+  if (name === `${PRODUCT_NAME}.exe` || name === `${PRODUCT_FILE_NAME}.exe`) return false;
   if (name.includes('__uninstaller')) return false;
 
   const ext = path.extname(name);
   if (!INSTALLER_EXTENSIONS.has(ext)) return false;
 
   if (ext === '.exe') {
-    return name.startsWith('Mesh-client Setup ') || name.startsWith('Mesh-client-Setup-');
+    return (
+      name.startsWith(`${PRODUCT_NAME} Setup `) || name.startsWith(`${PRODUCT_FILE_NAME}-Setup-`)
+    );
   }
   return true;
 }

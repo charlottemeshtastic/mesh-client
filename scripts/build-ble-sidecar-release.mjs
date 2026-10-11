@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Build release Reticulum sidecar binaries and stage per-arch copies for electron-builder.
+ * Build release Bluetooth helper binaries and stage per-arch copies for electron-builder.
  *
  * Failure point: cargo fails — exit non-zero so release CI never ships
  * an Electron bundle without the sidecar.

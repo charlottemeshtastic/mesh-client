@@ -1,5 +1,5 @@
 /**
- * electron-builder beforePack hook — copy the staged per-arch Reticulum sidecar into
+ * electron-builder beforePack hook — copy the staged per-arch Bluetooth helper into
  * resources/ble-sidecar/ so extraResources bundles the correct binary.
  * Also attaches SCHEMA-UPGRADE.txt when CI wrote a schema-bump notice.
  */
@@ -28,21 +28,21 @@ export default async function beforePack(context) {
   const stagedPath = resolveStagedSidecarPathForPackContext(projectRoot, platform, context.arch);
   if (!existsSync(stagedPath)) {
     throw new Error(
-      `[beforePack] Staged Reticulum sidecar missing for ${platform} arch ${context.arch}: ${stagedPath}. Run node scripts/build-ble-sidecar-release.mjs --platform ${platform} before dist.`,
+      `[beforePack] Staged Bluetooth helper missing for ${platform} arch ${context.arch}: ${stagedPath}. Run node scripts/build-ble-sidecar-release.mjs --platform ${platform} before dist.`,
     );
   }
 
   const size = statSync(stagedPath).size;
   if (size < MIN_SIDECAR_BYTES) {
     throw new Error(
-      `[beforePack] Staged Reticulum sidecar too small (${size} bytes): ${stagedPath}`,
+      `[beforePack] Staged Bluetooth helper too small (${size} bytes): ${stagedPath}`,
     );
   }
 
   const destPath = packSidecarResourcePath(projectRoot, platform);
   mkdirSync(path.dirname(destPath), { recursive: true });
   copyFileSync(stagedPath, destPath);
-  console.debug(`[beforePack] Reticulum sidecar: ${stagedPath} → ${destPath}`);
+  console.debug(`[beforePack] Bluetooth helper: ${stagedPath} → ${destPath}`);
 
   if (existsSync(SCHEMA_UPGRADE_TXT)) {
     const config = context.packager.config;

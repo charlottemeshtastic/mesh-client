@@ -93,12 +93,12 @@ export function formatSchemaCompareMarkdown(opts) {
     lines.push('');
     lines.push(
       'Installing and launching this build will upgrade the local SQLite database. ' +
-        'You **cannot downgrade** to an older Mesh-Client that only supports the previous schema ' +
+        'You **cannot downgrade** to an older Mesh Hub that only supports the previous schema ' +
         'while keeping the same database.',
     );
     lines.push('');
     lines.push(
-      'On first launch, Mesh-Client shows a **Quit / Upgrade** dialog before changing the database.',
+      'On first launch, Mesh Hub shows a **Quit / Upgrade** dialog before changing the database.',
     );
   } else {
     lines.push(`Last official release: **${opts.prevTag}** (schema **${opts.prevSchema}**)`);

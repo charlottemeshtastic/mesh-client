@@ -7,7 +7,7 @@ assignees: ''
 ---
 
 <!--
-  This template is normally pre-filled by Mesh-Client when a crash is reported.
+  This template is normally pre-filled by Mesh Hub when a crash is reported.
   If you are filing manually, complete the sections below.
 -->
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * CI smoke test: silent NSIS install and assert Mesh-client.exe lands on disk.
+ * CI smoke test: silent NSIS install and assert the app exe lands on disk.
  *
  * Failure point: NSIS can report success while dropping the main exe on WoA.
  * Fallback: exit non-zero with install log path so CI uploads diagnostics.
@@ -25,12 +25,13 @@ import { fileURLToPath } from 'url';
 import { findAppArchive } from './find-nsis-app-archive.mjs';
 import { assertBundledBleSidecarInBundle } from './assert-bundled-ble-sidecar.mjs';
 import { findWinSetupInstaller } from './win-setup-installer-names.mjs';
+import { PRODUCT_NAME, WIN_PER_USER_INSTALL_DIR_NAME } from './productNames.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const releaseDir = path.join(projectRoot, 'release');
 
-const APP_EXE = 'Mesh-client.exe';
+const APP_EXE = `${PRODUCT_NAME}.exe`;
 const MIN_EXE_BYTES = 50 * 1024 * 1024;
 
 /** @param {string} msg */
@@ -137,13 +138,13 @@ function probe7zExtract(installerPath, outDir, arch) {
   const exePath = path.join(archiveDir, APP_EXE);
   assertExe(`7z probe ${APP_EXE}`, exePath);
   assertBundledBleSidecarInBundle({
-    label: `7z probe ${arch} Reticulum sidecar`,
+    label: `7z probe ${arch} Bluetooth helper`,
     platform: 'win32',
     bundleRoot: archiveDir,
     fail,
   });
   console.debug(
-    `[test-win-nsis-install] OK — ${APP_EXE} + Reticulum sidecar present after 7z probe (${appArchiveName})`,
+    `[test-win-nsis-install] OK — ${APP_EXE} + Bluetooth helper present after 7z probe (${appArchiveName})`,
   );
 }
 
@@ -181,7 +182,7 @@ function main(arch, probe7z) {
   if (!localAppData) {
     fail('LOCALAPPDATA is not set');
   }
-  const instDir = path.join(localAppData, 'Programs', 'Mesh-client');
+  const instDir = path.join(localAppData, 'Programs', WIN_PER_USER_INSTALL_DIR_NAME);
   const workDir = mkdtempSync(path.join(tmpdir(), 'mesh-client-install-'));
   try {
     const logPath = path.join(workDir, `mesh-client-install-${arch}.log`);
@@ -211,13 +212,13 @@ function main(arch, probe7z) {
 
     assertExe(`installed ${APP_EXE}`, exePath);
     assertBundledBleSidecarInBundle({
-      label: `installed ${arch} Reticulum sidecar`,
+      label: `installed ${arch} Bluetooth helper`,
       platform: 'win32',
       bundleRoot: instDir,
       fail,
     });
     console.debug(
-      `[test-win-nsis-install] OK — ${arch} NSIS install left ${exePath} with bundled Reticulum sidecar`,
+      `[test-win-nsis-install] OK — ${arch} NSIS install left ${exePath} with bundled Bluetooth helper`,
     );
   } finally {
     rmSync(workDir, { recursive: true, force: true });
