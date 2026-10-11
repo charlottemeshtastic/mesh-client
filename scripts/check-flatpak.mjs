@@ -334,7 +334,7 @@ function checkManifestReticulumSidecarPayload() {
     violations.push({
       file: rel,
       message:
-        'manifest must copy resources/ into /app/lib/mesh-client/ (Reticulum sidecar under resources/ble-sidecar/)',
+        'manifest must copy resources/ into /app/lib/mesh-client/ (Bluetooth helper under resources/ble-sidecar/)',
     });
   }
 
@@ -346,7 +346,7 @@ function checkManifestReticulumSidecarPayload() {
     violations.push({
       file: rel,
       message:
-        'manifest must chmod 755 (or install -Dm755) the Reticulum sidecar under /app/lib/mesh-client/resources/ble-sidecar/',
+        'manifest must chmod 755 (or install -Dm755) the Bluetooth helper under /app/lib/mesh-client/resources/ble-sidecar/',
     });
   }
 

@@ -128,7 +128,7 @@ export function printPlan(out, full, removals, reinstall) {
   out.write(
     full
       ? 'This will remove:\n'
-      : 'This will remove (node_modules and the Reticulum sidecar are kept):\n',
+      : 'This will remove (node_modules and the Bluetooth helper are kept):\n',
   );
   for (const r of removals) out.write(`  - ${r.name}\n`);
   if (reinstall.install) {

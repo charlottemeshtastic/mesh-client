@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * CI smoke: extract Linux AppImages and assert the Reticulum sidecar is bundled.
+ * CI smoke: extract Linux AppImages and assert the Bluetooth helper is bundled.
  *
  * Works when packaging-smoke artifacts include AppImages but not linux-unpacked dirs.
  */
@@ -202,7 +202,7 @@ function assertSidecarInAppImage(arch, appImagePath) {
   try {
     const payloadRoot = extractAppImage(appImagePath, extractDir);
     assertBundledBleSidecarInBundle({
-      label: `${arch} AppImage Reticulum sidecar`,
+      label: `${arch} AppImage Bluetooth helper`,
       platform: 'linux',
       bundleRoot: payloadRoot,
       fail,
@@ -257,7 +257,7 @@ function main() {
 
   const version = JSON.parse(readFileSync(path.join(projectRoot, 'package.json'), 'utf-8')).version;
   console.debug(
-    `[test-linux-appimage-ble-sidecar] OK — x64+arm64 AppImages bundle Reticulum sidecar (v${version})`,
+    `[test-linux-appimage-ble-sidecar] OK — x64+arm64 AppImages bundle Bluetooth helper (v${version})`,
   );
 }
 

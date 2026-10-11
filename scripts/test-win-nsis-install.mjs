@@ -137,13 +137,13 @@ function probe7zExtract(installerPath, outDir, arch) {
   const exePath = path.join(archiveDir, APP_EXE);
   assertExe(`7z probe ${APP_EXE}`, exePath);
   assertBundledBleSidecarInBundle({
-    label: `7z probe ${arch} Reticulum sidecar`,
+    label: `7z probe ${arch} Bluetooth helper`,
     platform: 'win32',
     bundleRoot: archiveDir,
     fail,
   });
   console.debug(
-    `[test-win-nsis-install] OK — ${APP_EXE} + Reticulum sidecar present after 7z probe (${appArchiveName})`,
+    `[test-win-nsis-install] OK — ${APP_EXE} + Bluetooth helper present after 7z probe (${appArchiveName})`,
   );
 }
 
@@ -211,13 +211,13 @@ function main(arch, probe7z) {
 
     assertExe(`installed ${APP_EXE}`, exePath);
     assertBundledBleSidecarInBundle({
-      label: `installed ${arch} Reticulum sidecar`,
+      label: `installed ${arch} Bluetooth helper`,
       platform: 'win32',
       bundleRoot: instDir,
       fail,
     });
     console.debug(
-      `[test-win-nsis-install] OK — ${arch} NSIS install left ${exePath} with bundled Reticulum sidecar`,
+      `[test-win-nsis-install] OK — ${arch} NSIS install left ${exePath} with bundled Bluetooth helper`,
     );
   } finally {
     rmSync(workDir, { recursive: true, force: true });

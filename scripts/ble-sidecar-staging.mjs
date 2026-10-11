@@ -1,5 +1,5 @@
 /**
- * Path helpers for per-arch Reticulum sidecar staging during electron-builder packaging.
+ * Path helpers for per-arch Bluetooth helper staging during electron-builder packaging.
  */
 import path from 'path';
 

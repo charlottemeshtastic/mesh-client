@@ -418,7 +418,7 @@ function checkRust() {
       status: 'warn',
       severity: 'optional',
       label: 'Rust/cargo not found (optional)',
-      hint: 'Needed for Reticulum sidecar — install via https://rustup.rs/; pre-commit skips Rust checks when cargo is missing',
+      hint: 'Needed for Bluetooth helper — install via https://rustup.rs/; pre-commit skips Rust checks when cargo is missing',
     };
   }
   return {

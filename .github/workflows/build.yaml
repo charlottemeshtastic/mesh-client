@@ -154,7 +154,14 @@ jobs:
           APPLE_ID: ${{ matrix.os == 'macos-latest' && secrets.APPLE_ID || '' }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ matrix.os == 'macos-latest' && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}
           APPLE_TEAM_ID: ${{ matrix.os == 'macos-latest' && secrets.APPLE_TEAM_ID || '' }}
-        run: ${{ matrix.build_script }}
+        # electron-builder resolves an *empty* CSC_LINK as a file path (the repo root) and fails,
+        # so drop empty signing/notarization vars for unsigned (fork / no-secret) builds.
+        shell: bash
+        run: |
+          for var in CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID; do
+            if [ -z "${!var:-}" ]; then unset "$var"; fi
+          done
+          ${{ matrix.build_script }}
 
       # Stamp downloadable installer basenames with -run{N} so same-semver test
       # builds do not overwrite each other after unzip. Runs after dist:* verify

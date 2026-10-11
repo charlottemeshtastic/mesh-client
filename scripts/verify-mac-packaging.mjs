@@ -508,7 +508,7 @@ function assertMacCodeSignatureIfDeveloperId(bundleRoot, label, deps = {}) {
 
   const sidecarPath = resolveSidecar(bundleRoot);
   if (!sidecarPath || !existsSync(sidecarPath)) {
-    fail(`${label} missing Reticulum sidecar for codesign check: ${sidecarPath ?? '(null)'}`);
+    fail(`${label} missing Bluetooth helper for codesign check: ${sidecarPath ?? '(null)'}`);
   }
   const sidecar = verifyStrict(sidecarPath);
   if (sidecar.error || sidecar.status !== 0) {
@@ -543,7 +543,7 @@ function validateAppBundle(bundleRoot, sourceLabel, expectedArch) {
   assertMacMinimumSystemVersion(bundleRoot, label);
   assertBundleMatchesExpectedArch(bundleRoot, label, expectedArch);
   assertBundledBleSidecarInBundle({
-    label: `bundled Reticulum sidecar in ${label}`,
+    label: `bundled Bluetooth helper in ${label}`,
     platform: 'darwin',
     bundleRoot,
     fail,

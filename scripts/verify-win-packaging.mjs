@@ -67,13 +67,13 @@ function main() {
   assertExe('x64 unpacked app', path.join(releaseDir, 'win-unpacked', APP_EXE));
   assertExe('arm64 unpacked app', path.join(releaseDir, 'win-arm64-unpacked', APP_EXE));
   assertBundledBleSidecarInBundle({
-    label: 'x64 bundled Reticulum sidecar',
+    label: 'x64 bundled Bluetooth helper',
     platform: 'win32',
     bundleRoot: path.join(releaseDir, 'win-unpacked'),
     fail,
   });
   assertBundledBleSidecarInBundle({
-    label: 'arm64 bundled Reticulum sidecar',
+    label: 'arm64 bundled Bluetooth helper',
     platform: 'win32',
     bundleRoot: path.join(releaseDir, 'win-arm64-unpacked'),
     fail,

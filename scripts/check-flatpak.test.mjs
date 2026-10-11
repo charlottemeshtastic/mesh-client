@@ -130,7 +130,7 @@ describe('flatpakWorkflowSidecarExecutableContractViolations', () => {
   });
 });
 
-describe('manifest Reticulum sidecar executable bit', () => {
+describe('manifest Bluetooth helper executable bit', () => {
   it('requires chmod 755 after resources copy in the real manifest', () => {
     const manifest = fs.readFileSync(
       path.join(ROOT, 'io.github.charlottemeshtastic.MeshHub.yml'),
